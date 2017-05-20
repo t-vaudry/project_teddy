@@ -9,8 +9,8 @@
 #define ROTATE 1.0f // degree
 
 Camera::Camera()
-    : mPosition(0.0f, 0.0f, 25.0f)
-    , mDirection(0.0f, 0.0f, -1.0f)
+    : mPosition(25.0f, 10.0f, 25.0f)
+    , mDirection(-1.0f, -0.5f, -1.0f)
     , mUp(0.0f, 1.0f, 0.0f)
 {
     mRight = glm::cross(mDirection, mUp);
@@ -93,8 +93,8 @@ void Camera::Rotate(ROTATION_AXIS axis, float sign)
 
 void Camera::Reset()
 {
-    mPosition = glm::vec3(0.0f, 0.0f, 25.0f);
-    mDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    mPosition = glm::vec3(25.0f, 10.0f, 25.0f);
+    mDirection = glm::vec3(-1.0f, -0.5f, -1.0f);
     mUp = glm::vec3(0.0f, 1.0f, 0.0f);
     mRight = glm::cross(mDirection, mUp);
 }

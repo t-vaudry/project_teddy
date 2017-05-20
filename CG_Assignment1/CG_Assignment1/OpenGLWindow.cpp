@@ -248,8 +248,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         if (!mAxisRotationToggle)
             mCamera->Rotate(Z_AXIS, 1.0f);
         else
-        { // TODO: not right
-            mShapes[5]->mRotate.x += ROTATION_STEP;
+        {
+            mShapes[5]->mRotate.x += ROTATION_STEP; // Rotate axis
             glm::mat3 rotation = glm::mat3(glm::rotate(glm::radians(ROTATION_STEP), glm::vec3(1.0f, 0.0f, 0.0f)));
             mAxisOfRotation = rotation * mAxisOfRotation;
         }
@@ -260,8 +260,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         if (!mAxisRotationToggle)
             mCamera->Rotate(Z_AXIS, -1.0f);
         else
-        { // TODO: not right
-            mShapes[5]->mRotate.x -= ROTATION_STEP;
+        {
+            mShapes[5]->mRotate.x -= ROTATION_STEP; // Rotate axis
             glm::mat3 rotation = glm::mat3(glm::rotate(glm::radians(-ROTATION_STEP), glm::vec3(1.0f, 0.0f, 0.0f)));
             mAxisOfRotation = rotation * mAxisOfRotation;
         }
@@ -270,17 +270,29 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_S && action == GLFW_PRESS)
     {
         if (mode == GLFW_MOD_SHIFT)
+        {
             mShapes[0]->mScale += SCALE_STEP;
+            mShapes[6]->mScale += SCALE_STEP;
+        }
         else
+        {
             mShapes[0]->mScale -= SCALE_STEP;
+            mShapes[6]->mScale -= SCALE_STEP;
+        }
     }
 
     if (key == GLFW_KEY_R && action == GLFW_PRESS)
     {
         if (mode == GLFW_MOD_SHIFT)
+        {
             mShapes[1]->mScale += SCALE_STEP;
+            mShapes[7]->mScale += SCALE_STEP;
+        }
         else
+        {
             mShapes[1]->mScale -= SCALE_STEP;
+            mShapes[7]->mScale -= SCALE_STEP;
+        }
     }
 
     if (key == GLFW_KEY_M && action == GLFW_PRESS)

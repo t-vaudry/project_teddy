@@ -181,6 +181,8 @@ int main()
 
     spinner.CleanUp();
     revolver.CleanUp();
+    teddySpinner.CleanUp();
+    teddyRevolver.CleanUp();
     xAxis.CleanUp();
     yAxis.CleanUp();
     zAxis.CleanUp();
