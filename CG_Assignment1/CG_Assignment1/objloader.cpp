@@ -10,6 +10,7 @@
 #include <objloader.h>
 
 // .OBJ Loader from http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
+// NOTE: objloader code modified from code provided in COMP371 Lab
 
 #pragma warning(disable:4996)
 

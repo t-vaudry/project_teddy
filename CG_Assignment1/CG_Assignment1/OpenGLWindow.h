@@ -13,10 +13,10 @@
 #include <Shape.h>
 #include <ShapeGenerator.h>
 
-#define WIDTH 2000
-#define HEIGHT 2000
+#define WIDTH 800
+#define HEIGHT 800
 #define SCALE_STEP 0.1f
-#define ROTATION_STEP 0.5f
+#define ROTATION_STEP 0.25f
 
 typedef int GLRenderMode;
 

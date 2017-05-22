@@ -102,17 +102,19 @@ int main()
     OpenGLWindow::BindBuffers(&teddyRevolver, &TEDDY_REVOLVER);
     OpenGLWindow::AddShape(&teddyRevolver);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
-    glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
         // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
-        // Clear the colorbuffer
+        // Clear the color and depth buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Redefine the viewport for resizing
         OpenGLWindow::DefineViewport(window);
 
         glBindVertexArray(VAO);
@@ -187,6 +189,7 @@ int main()
     yAxis.CleanUp();
     zAxis.CleanUp();
     line.CleanUp();
+
     // Terminate GLFW, clearing any resources allocated by GLFW.
     glfwTerminate();
     return 0;

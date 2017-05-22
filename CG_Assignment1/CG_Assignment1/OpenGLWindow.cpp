@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "OpenGLWindow.h"
 
+// Public static variables
 GLRenderMode OpenGLWindow::mRenderMode = GL_TRIANGLES;
 bool OpenGLWindow::mAnimationToggle = true;
 bool OpenGLWindow::mAxisRotationToggle = false;
@@ -227,7 +228,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         mAnimationToggle = !mAnimationToggle;
 
     if (key == GLFW_KEY_W && action == GLFW_RELEASE)
-        mRenderMode = GL_LINES;
+        mRenderMode = GL_LINE_STRIP;
 
     if (key == GLFW_KEY_T && action == GLFW_RELEASE)
         mRenderMode = GL_TRIANGLES;
@@ -321,6 +322,6 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     mCamera->mIsPanning = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
-    mCamera->mIsTilting = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
-    mCamera->mIsZooming = button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS;
+    mCamera->mIsTilting = button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS;
+    mCamera->mIsZooming = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
 }
