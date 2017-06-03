@@ -59,7 +59,7 @@ int main()
     Shape teddySpinner = ShapeGenerator::GenerateTeddy(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.1f));
     Shape teddyRevolver = ShapeGenerator::GenerateTeddy(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.05f), glm::vec3(0.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
     Shape spinner = ShapeGenerator::GenerateCube(glm::vec3(0.0f, 0.0f, 1.0f));
-    Shape revolver = ShapeGenerator::GenerateCube(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
+    Shape revolver = ShapeGenerator::GenerateCube(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -10.0f));
     Shape xAxis = ShapeGenerator::GenerateLine(glm::vec3(8.0f, 0.0f, 0.0f), origin, glm::vec3(1.0f, 0.0f, 0.0f));
     Shape yAxis = ShapeGenerator::GenerateLine(glm::vec3(0.0f, 8.0f, 0.0f), origin, glm::vec3(0.0f, 0.0f, 0.0f));
     Shape zAxis = ShapeGenerator::GenerateLine(glm::vec3(0.0f, 0.0f, 8.0f), origin, glm::vec3(0.0f, 1.0f, 0.0f));
