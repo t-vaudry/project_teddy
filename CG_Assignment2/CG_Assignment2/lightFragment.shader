@@ -3,6 +3,7 @@
 in vec3 vertexColor;
 in vec3 vertexNormal;
 in vec3 vertexPosition;
+in vec2 vertexUV;
 
 out vec4 color;
 
@@ -17,6 +18,9 @@ uniform float linearFactor;
 uniform float quadraticFactor;
 
 uniform bool lightOn;
+uniform bool textureOn;
+
+uniform sampler2D textureSample;
 
 void main()
 {
@@ -50,5 +54,8 @@ void main()
     else
         allLight = vec4(1.0f);
 
-    color = allLight * vec4(vertexColor, 1.0f) ;
+    if (textureOn)
+        color = allLight * vec4(texture(textureSample, vertexUV).rgb, 1.0f);
+    else
+        color = allLight * vec4(vertexColor, 1.0f);
 } 

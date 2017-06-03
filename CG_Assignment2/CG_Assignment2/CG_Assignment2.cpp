@@ -45,11 +45,6 @@ int main()
     GLuint vertexShader = OpenGLWindow::CompileShader(vertexShaderCode, GL_VERTEX_SHADER);
     CHECK_ERROR(vertexShader);
 
-    //string offsetVertexShaderCode = OpenGLWindow::CodeShader("offsetVertex.shader");
-    //CHECK_STRING(offsetVertexShaderCode);
-    //GLuint offsetVertexShader = OpenGLWindow::CompileShader(offsetVertexShaderCode, GL_VERTEX_SHADER);
-    //CHECK_ERROR(offsetVertexShader);
-
     string lightVertexShaderCode = OpenGLWindow::CodeShader("lightVertex.shader");
     CHECK_STRING(lightVertexShaderCode);
     GLuint lightVertexShader = OpenGLWindow::CompileShader(lightVertexShaderCode, GL_VERTEX_SHADER);
@@ -75,9 +70,6 @@ int main()
     GLuint shaderProgram = OpenGLWindow::AttachShaders(vertexShader, fragmentShader);
     CHECK_ERROR(shaderProgram);
 
-    //GLuint offsetShaderProgram = OpenGLWindow::AttachShaders(offsetVertexShader, fragmentShader);
-    //CHECK_ERROR(offsetShaderProgram);
-
     GLuint lightShaderProgram = OpenGLWindow::AttachShaders(lightVertexShader, lightFragmentShader);
     CHECK_ERROR(lightShaderProgram);
 
@@ -88,8 +80,11 @@ int main()
 
 set_number:
     int number = 0;
-    cout << "Number of points to draw : ";
-    cin >> number;
+    while (number < 4)
+    {
+        cout << "Number of points to draw (> 4) : ";
+        cin >> number;
+    }
     OpenGLWindow::SetMaxPoints(number, window);
 
     Shape* points = new Shape[number + 1];
@@ -110,8 +105,8 @@ set_number:
     GLuint POINT_VBO;
     GLuint* POINTS = new GLuint[number];
     GLuint SPLINE, SPLINE_VERTEX;
-    GLuint TERRAIN, TERRAIN_VERTEX, TERRAIN_OFFSET;
-    GLuint TRACK, TRACK_VERTEX, TRACK_MODEL_MATRIX;
+    GLuint TERRAIN, TERRAIN_VERTEX, TERRAIN_OFFSET, TERRAIN_TEXTURE;
+    GLuint TRACK, TRACK_VERTEX, TRACK_MODEL_MATRIX, TRACK_TEXTURE;
 
     glGenVertexArrays(1, &POINT_VBO);
     glGenBuffers(number, POINTS);
@@ -120,7 +115,7 @@ set_number:
 
     for (int i = 0; i < number + 1; i++)
     {
-        OpenGLWindow::BindBuffers(&points[i], &POINTS[i]);
+        OpenGLWindow::BindBuffers(&points[i], &POINTS[i], false);
         OpenGLWindow::AddShape(&points[i]);
     }
 
@@ -132,26 +127,32 @@ set_number:
 
     OpenGLWindow::AttachSpline(&spline, &SPLINE);
 
+    glActiveTexture(GL_TEXTURE0);
     glGenVertexArrays(1, &TERRAIN);
     glGenBuffers(1, &TERRAIN_VERTEX);
     glGenBuffers(1, &TERRAIN_OFFSET);
+    glGenTextures(1, &TERRAIN_TEXTURE);
 
     glBindVertexArray(TERRAIN);
 
-    OpenGLWindow::BindBuffers(&terrain, &TERRAIN_VERTEX);
+    OpenGLWindow::BindBuffers(&terrain, &TERRAIN_VERTEX, true);
     OpenGLWindow::BindOffsetBuffers(terrainOffset, &TERRAIN_OFFSET);
+    OpenGLWindow::BindTexture(&TERRAIN_TEXTURE, "grass.jpg");
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    glActiveTexture(GL_TEXTURE1);
     glGenVertexArrays(1, &TRACK);
     glGenBuffers(1, &TRACK_VERTEX);
     glGenBuffers(1, &TRACK_MODEL_MATRIX);
+    glGenTextures(1, &TRACK_TEXTURE);
 
     glBindVertexArray(TRACK);
 
-    OpenGLWindow::BindBuffers(&track, &TRACK_VERTEX);
+    OpenGLWindow::BindBuffers(&track, &TRACK_VERTEX, true);
     OpenGLWindow::BindModelBuffers(nullModel, &TRACK_MODEL_MATRIX);
+    OpenGLWindow::BindTexture(&TRACK_TEXTURE, "brick.jpg");
     OpenGLWindow::AttachTrackModel(&TRACK_MODEL_MATRIX);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -172,7 +173,7 @@ set_number:
         if (OpenGLWindow::mGenerateSpline)
         {
             glBindVertexArray(POINT_VBO);
-            for (int i = 0; i < OpenGLWindow::mIndex + 1; i++)
+            for (int i = 0; i < OpenGLWindow::mIndex; i++)
             {
                 SKIP(i); // This used to avoid error on 2nd element
                 OpenGLWindow::RenderShape(&points[i], shaderProgram);
@@ -195,11 +196,13 @@ set_number:
             OpenGLWindow::SetUniformFactors(lightShaderProgram);
 
             glBindVertexArray(TERRAIN);
+            OpenGLWindow::SetTexture(lightShaderProgram, 0);
             OpenGLWindow::RenderShape(&terrain, lightShaderProgram);
             OpenGLWindow::DrawInstancedShape(&terrain, terrainOffset.size(), &TERRAIN, &TERRAIN_VERTEX);
             glBindVertexArray(0);
 
             OpenGLWindow::SetUniformFactors(trackShaderProgram);
+            OpenGLWindow::SetTexture(trackShaderProgram, 1);
             glBindVertexArray(TRACK);
             OpenGLWindow::RenderTrack(&track, trackShaderProgram);
             OpenGLWindow::DrawInstancedShape(&track, OpenGLWindow::mTrackModel.size(), &TRACK, &TRACK_VERTEX);

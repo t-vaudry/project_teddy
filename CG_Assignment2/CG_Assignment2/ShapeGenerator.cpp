@@ -165,54 +165,61 @@ Shape ShapeGenerator::GenerateTrack(glm::vec3 color, glm::vec3 scale, glm::vec3 
         glm::vec3(0.0f, 0.0f, -1.0f)  // 5
     };
 
+    glm::vec2 uvs[] = {
+        glm::vec2(0.0f, 0.0f), // 0
+        glm::vec2(0.0f, 1.0f), // 1
+        glm::vec2(1.0f, 0.0f), // 2
+        glm::vec2(1.0f, 1.0f)  // 3
+    };
+
     Vertex vertexData[] = {
         // FRONT
-        Vertex(vertices[0], color, normals[5]),
-        Vertex(vertices[6], color, normals[5]),
-        Vertex(vertices[1], color, normals[5]),
-        Vertex(vertices[0], color, normals[5]),
-        Vertex(vertices[6], color, normals[5]),
-        Vertex(vertices[5], color, normals[5]),
+        Vertex(vertices[0], color, normals[5], uvs[0]),
+        Vertex(vertices[6], color, normals[5], uvs[3]),
+        Vertex(vertices[1], color, normals[5], uvs[2]),
+        Vertex(vertices[0], color, normals[5], uvs[0]),
+        Vertex(vertices[6], color, normals[5], uvs[3]),
+        Vertex(vertices[5], color, normals[5], uvs[1]),
 
         // BACK
-        Vertex(vertices[7], color, normals[4]),
-        Vertex(vertices[4], color, normals[4]),
-        Vertex(vertices[2], color, normals[4]),
-        Vertex(vertices[3], color, normals[4]),
-        Vertex(vertices[4], color, normals[4]),
-        Vertex(vertices[2], color, normals[4]),
+        Vertex(vertices[7], color, normals[4], uvs[0]),
+        Vertex(vertices[4], color, normals[4], uvs[1]),
+        Vertex(vertices[2], color, normals[4], uvs[2]),
+        Vertex(vertices[3], color, normals[4], uvs[3]),
+        Vertex(vertices[4], color, normals[4], uvs[1]),
+        Vertex(vertices[2], color, normals[4], uvs[2]),
 
         // LEFT
-        Vertex(vertices[0], color, normals[3]),
-        Vertex(vertices[1], color, normals[3]),
-        Vertex(vertices[7], color, normals[3]),
-        Vertex(vertices[2], color, normals[3]),
-        Vertex(vertices[1], color, normals[3]),
-        Vertex(vertices[7], color, normals[3]),
+        Vertex(vertices[0], color, normals[3], uvs[1]),
+        Vertex(vertices[1], color, normals[3], uvs[3]),
+        Vertex(vertices[7], color, normals[3], uvs[0]),
+        Vertex(vertices[2], color, normals[3], uvs[2]),
+        Vertex(vertices[1], color, normals[3], uvs[3]),
+        Vertex(vertices[7], color, normals[3], uvs[0]),
 
         // RIGHT
-        Vertex(vertices[6], color, normals[2]),
-        Vertex(vertices[5], color, normals[2]),
-        Vertex(vertices[4], color, normals[2]),
-        Vertex(vertices[6], color, normals[2]),
-        Vertex(vertices[3], color, normals[2]),
-        Vertex(vertices[4], color, normals[2]),
+        Vertex(vertices[6], color, normals[2], uvs[2]),
+        Vertex(vertices[5], color, normals[2], uvs[0]),
+        Vertex(vertices[4], color, normals[2], uvs[1]),
+        Vertex(vertices[6], color, normals[2], uvs[2]),
+        Vertex(vertices[3], color, normals[2], uvs[3]),
+        Vertex(vertices[4], color, normals[2], uvs[1]),
 
         // TOP
-        Vertex(vertices[2], color, normals[0]),
-        Vertex(vertices[1], color, normals[0]),
-        Vertex(vertices[6], color, normals[0]),
-        Vertex(vertices[2], color, normals[0]),
-        Vertex(vertices[3], color, normals[0]),
-        Vertex(vertices[6], color, normals[0]),
+        Vertex(vertices[2], color, normals[0], uvs[2]),
+        Vertex(vertices[1], color, normals[0], uvs[0]),
+        Vertex(vertices[6], color, normals[0], uvs[1]),
+        Vertex(vertices[2], color, normals[0], uvs[2]),
+        Vertex(vertices[3], color, normals[0], uvs[3]),
+        Vertex(vertices[6], color, normals[0], uvs[1]),
 
         // BOTTOM
-        Vertex(vertices[0], color, normals[1]),
-        Vertex(vertices[4], color, normals[1]),
-        Vertex(vertices[5], color, normals[1]),
-        Vertex(vertices[0], color, normals[1]),
-        Vertex(vertices[4], color, normals[1]),
-        Vertex(vertices[7], color, normals[1]),
+        Vertex(vertices[0], color, normals[1], uvs[2]),
+        Vertex(vertices[4], color, normals[1], uvs[1]),
+        Vertex(vertices[5], color, normals[1], uvs[3]),
+        Vertex(vertices[0], color, normals[1], uvs[2]),
+        Vertex(vertices[4], color, normals[1], uvs[1]),
+        Vertex(vertices[7], color, normals[1], uvs[0]),
     };
 
     track.mNumberOfVertices = sizeof(vertexData) / sizeof(*vertexData);
@@ -242,7 +249,7 @@ Shape ShapeGenerator::GenerateCatmullRomSpline(vector<glm::vec3>& controlPoints,
         float local = glm::fract(t);
         float nextLocal = glm::fract(t) + 1.0f;
 
-        Subdivide(local, nextLocal, controlPoints[i0], controlPoints[i1], controlPoints[i2], controlPoints[i3], vertices, index, OpenGLWindow::mCurvatureBased);
+        Subdivide(local, nextLocal, controlPoints[i0], controlPoints[i1], controlPoints[i2], controlPoints[i3], vertices, index, OpenGLWindow::mCurvatureToggle);
     }
 
     spline.mNumberOfVertices = vertices.size();
@@ -260,37 +267,37 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
     glm::vec3 normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
     Vertex vertices[] = {
-        Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal),
-        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
+        Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal, glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
 
-        Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal),
+        Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal, glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
 
-        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal),
+        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f)),
 
-        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,0.0f), color, normal),
+        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
+        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f)),
+        Vertex(glm::vec3(1.0f,0.0f,0.0f), color, normal, glm::vec2(1.0f, 0.0f)),
 
-        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.0f,0.0f,1.0f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal),
+        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
+        Vertex(glm::vec3(0.0f,0.0f,1.0f), color, normal, glm::vec2(0.0f, 1.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
 
-        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal),
+        Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
 
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
+        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
 
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal),
-        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal)
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
+        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f))
     };
 
     terrain.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);

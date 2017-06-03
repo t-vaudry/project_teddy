@@ -5,8 +5,9 @@ bool OpenGLWindow::mClose = false;
 bool OpenGLWindow::mLight = true;
 GLRenderMode OpenGLWindow::mRenderMode = GL_POINTS;
 GLRenderMode OpenGLWindow::mSplineMode = GL_LINE_STRIP;
-bool OpenGLWindow::mCurvatureBased = false;
+bool OpenGLWindow::mCurvatureToggle = false;
 bool OpenGLWindow::mAnimationToggle = true;
+bool OpenGLWindow::mTextureToggle = false;
 bool OpenGLWindow::mSpawnToggle = true;
 bool OpenGLWindow::mSplineToggle = false;
 bool OpenGLWindow::mGenerateSpline = true;
@@ -119,7 +120,7 @@ void OpenGLWindow::UpdateCamera()
 
     if (mAnimationToggle)
     {
-        if (!mCurvatureBased)
+        if (!mCurvatureToggle)
             mCurrentCameraIndex += DISTANCE_CAMERA_SPEED;
         else
             mCurrentCameraIndex += CURVATURE_CAMERA_SPEED;
@@ -211,17 +212,22 @@ void OpenGLWindow::AddShape(Shape* shape)
     mShapes.push_back(shape);
 }
 
-void OpenGLWindow::BindBuffers(Shape* shape, GLuint* VBO)
+void OpenGLWindow::BindBuffers(Shape* shape, GLuint* VBO, bool uv)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glBufferData(GL_ARRAY_BUFFER, shape->GetVertexBufferSize(), shape->mVertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
     glEnableVertexAttribArray(2);
+    if (uv)
+    {
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
+        glEnableVertexAttribArray(3);
+    }
 }
 
 void OpenGLWindow::BindOffsetBuffers(vector<glm::vec3>& offset, GLuint* VBO)
@@ -231,9 +237,20 @@ void OpenGLWindow::BindOffsetBuffers(vector<glm::vec3>& offset, GLuint* VBO)
     if (offset.size() > 0)
         glBufferData(GL_ARRAY_BUFFER, offset.size() * sizeof(glm::vec3), &offset[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-    glVertexAttribDivisor(3, 1);
-    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribDivisor(4, 1);
+    glEnableVertexAttribArray(4);
+}
+
+void OpenGLWindow::BindTexture(GLuint* texture, char* path)
+{
+    glBindTexture(GL_TEXTURE_2D, *texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    int width, height;
+    unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    SOIL_free_image_data(image);
 }
 
 void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
@@ -244,21 +261,21 @@ void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
     if (model.size() > 0)
         glBufferData(GL_ARRAY_BUFFER, model.size() * sizeof(glm::mat4), &model[0], GL_STATIC_DRAW);
 
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)0);
-    glVertexAttribDivisor(3, 1);
-    glEnableVertexAttribArray(3);
-
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 4));
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)0);
     glVertexAttribDivisor(4, 1);
     glEnableVertexAttribArray(4);
 
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 8));
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 4));
     glVertexAttribDivisor(5, 1);
     glEnableVertexAttribArray(5);
 
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 12));
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 8));
     glVertexAttribDivisor(6, 1);
     glEnableVertexAttribArray(6);
+
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 12));
+    glVertexAttribDivisor(7, 1);
+    glEnableVertexAttribArray(7);
 }
 
 void OpenGLWindow::SetUniformFactors(GLuint program)
@@ -296,6 +313,15 @@ void OpenGLWindow::SetUniformFactors(GLuint program)
     glUniform3fv(sunLightLoc, 1, &sun_light[0]);
 
     glUniform1i(lightOnLoc, mLight);
+}
+
+void OpenGLWindow::SetTexture(GLuint program, int index)
+{
+    GLuint textureLoc = glGetUniformLocation(program, "textureSample");
+    GLuint textureOnLoc = glGetUniformLocation(program, "textureOn");
+
+    glUniform1i(textureLoc, index);
+    glUniform1i(textureOnLoc, mTextureToggle);
 }
 
 // TODO: only render with light on correct program
@@ -367,11 +393,11 @@ void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
     glPointSize(10.0f);
     glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -382,11 +408,13 @@ void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VAO, GLuin
     glBindVertexArray(*VAO);
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
     glPointSize(10.0f);
     glDrawArraysInstanced(mRenderMode, 0, shape->mNumberOfVertices, size);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -398,11 +426,11 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
     glPointSize(5.0f);
     glDrawArrays(mSplineMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -411,6 +439,7 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
 void OpenGLWindow::Reset()
 {
     mSplineToggle = false;
+    mCurvatureToggle = false;
     mSplineShape = NULL;
     mSplineTrack = NULL;
 
@@ -477,7 +506,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
             *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 100.0f);
             *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 5.0f);
-            BindBuffers(mSplineShape, mSplineVBO);
+            BindBuffers(mSplineShape, mSplineVBO, false);
             AddShape(mSplineShape);
 
             mSplineToggle = true;
@@ -504,24 +533,27 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
     if (key == GLFW_KEY_C && action == GLFW_PRESS)
     {
-        mCurvatureBased = !mCurvatureBased;
-
-        delete(mSplineShape->mVertices);
-        mSplineShape->mNumberOfVertices = 0;
-        delete(mSplineTrack->mVertices);
-        mSplineTrack->mNumberOfVertices = 0;
-
-        vector<glm::vec3> vertices;
-        for (int i = 0; i < mIndex; i++)
+        if (mGenerateSpline)
         {
-            SKIP(i);
-            vertices.push_back(mShapes[i]->mTranslate);
-        }
+            mCurvatureToggle = !mCurvatureToggle;
 
-        *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 175.0f);
-        *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 178.0f);
-        BindBuffers(mSplineShape, mSplineVBO);
-        AddShape(mSplineShape);
+            delete(mSplineShape->mVertices);
+            mSplineShape->mNumberOfVertices = 0;
+            delete(mSplineTrack->mVertices);
+            mSplineTrack->mNumberOfVertices = 0;
+
+            vector<glm::vec3> vertices;
+            for (int i = 0; i < mIndex; i++)
+            {
+                SKIP(i);
+                vertices.push_back(mShapes[i]->mTranslate);
+            }
+
+            *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 175.0f);
+            *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 178.0f);
+            BindBuffers(mSplineShape, mSplineVBO, false);
+            AddShape(mSplineShape);
+        }
     }
 
     if (key == GLFW_KEY_L && action == GLFW_PRESS)
@@ -529,6 +561,9 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
     if (key == GLFW_KEY_P && action == GLFW_PRESS)
         mSplineMode = GL_POINTS;
+
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+        mTextureToggle = !mTextureToggle;
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && mSplineToggle)
     {
@@ -544,24 +579,6 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             mAnimationToggle = !mAnimationToggle;
         }
     }
-
-    if (key == GLFW_KEY_UP && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(FORWARD);
-
-    if (key == GLFW_KEY_DOWN && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(BACKWARD);
-
-    if (key == GLFW_KEY_LEFT && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(LEFT);
-
-    if (key == GLFW_KEY_RIGHT && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(RIGHT);
-
-    if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(UP);
-
-    if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
-        mCamera->Move(DOWN);
 }
 
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)

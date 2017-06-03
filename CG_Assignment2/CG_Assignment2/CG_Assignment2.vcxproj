@@ -88,13 +88,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glew;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glm;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\CG_Assignment2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\soil;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glm;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\CG_Assignment2;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glew;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glm;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\soil;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glew;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\CG_Assignment2\glm;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;glfw3.lib;opengl32.lib;legacy_stdio_definitions.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

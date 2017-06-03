@@ -8,6 +8,7 @@
 #include <glm.hpp>
 #include <gtx/transform.hpp>
 #include <gtc/type_ptr.hpp>
+#include <SOIL.h>
 
 #include <Camera.h>
 #include <Shape.h>
@@ -15,7 +16,7 @@
 
 #define WIDTH 1800
 #define HEIGHT 1800
-#define DISTANCE_CAMERA_SPEED 0.75f
+#define DISTANCE_CAMERA_SPEED 0.25f
 #define CURVATURE_CAMERA_SPEED 0.35f;
 
 #define CONSTANT_ATTENUATION 1.0f
@@ -40,10 +41,11 @@ public:
     static bool mClose;
     static bool mLight;
     static GLRenderMode mRenderMode;
-    static bool mCurvatureBased;
+    static bool mCurvatureToggle;
     static bool mGenerateSpline;
     static GLRenderMode mSplineMode;
     static bool mAnimationToggle;
+    static bool mTextureToggle;
     static bool mSpawnToggle;
     static bool mSplineToggle;
     static Shape* mSplineShape;
@@ -75,10 +77,12 @@ public:
     static void AttachTrackModel(GLuint* VBO);
     static void AttachSpline(Shape* shape, GLuint* VBO);
     static void AddShape(Shape* shape);
-    static void BindBuffers(Shape* shape, GLuint* VBO);
+    static void BindBuffers(Shape* shape, GLuint* VBO, bool uv);
     static void BindOffsetBuffers(vector<glm::vec3>& offset, GLuint* VBO);
+    static void BindTexture(GLuint* texture, char* path);
     static void BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO);
     static void SetUniformFactors(GLuint program);
+    static void SetTexture(GLuint program, int index);
     static void RenderShape(Shape* shape, GLuint program);
     static void RenderTrack(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
