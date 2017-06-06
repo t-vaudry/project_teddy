@@ -56,14 +56,21 @@ int main()
 
     Shape teddy = ShapeGenerator::GenerateTeddy(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.1f));
 
-    GLuint VAO, TEDDY;
+    //DEBUG
+    Shape boundingCube = ShapeGenerator::GenerateCube(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(teddy.mRadius), glm::vec3(0.0f), teddy.mTranslate);
+
+    GLuint VAO, TEDDY, TST_CUBE;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &TEDDY);
+    glGenBuffers(1, &TST_CUBE);
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO);
 
     OpenGLWindow::BindBuffers(&teddy, &TEDDY);
     OpenGLWindow::AddShape(&teddy);
+
+    OpenGLWindow::BindBuffers(&boundingCube, &TST_CUBE);
+    OpenGLWindow::AddShape(&boundingCube);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -86,6 +93,9 @@ int main()
         // Render
         OpenGLWindow::RenderShape(&teddy, shaderProgram);
         OpenGLWindow::DrawShape(&teddy, &TEDDY);
+
+        OpenGLWindow::RenderShape(&boundingCube, shaderProgram);
+        OpenGLWindow::DrawShape(&boundingCube, &TST_CUBE);
 
         glBindVertexArray(0);
 

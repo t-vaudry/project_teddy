@@ -236,6 +236,10 @@ void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 
 void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+    //DEBUG
+    if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+        mRenderMode = GL_LINE_STRIP;
+
     //cout << key << endl;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);

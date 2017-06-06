@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "ShapeGenerator.h"
 
+#include <iostream>
+
 Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
 {
     Shape cube;
@@ -84,6 +86,11 @@ Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 r
     cube.mRotate = rotate;
     cube.mTranslate = translate;
 
+    cube.InitializeBoundingSphere();
+
+    //DEBUG:
+    std::cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
+    std::cout << cube.mRadius << endl;
     return cube;
 }
 
@@ -100,6 +107,8 @@ Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 
 
     line.mVertices = new Vertex[line.mNumberOfVertices];
     memcpy(line.mVertices, vertices, sizeof(vertices));
+
+    line.InitializeBoundingSphere();
 
     return line;
 }
@@ -119,6 +128,13 @@ Shape ShapeGenerator::GenerateTeddy(glm::vec3 color, glm::vec3 scale, glm::vec3 
     teddy.mScale = scale;
     teddy.mRotate = rotate;
     teddy.mTranslate = translate;
+
+    teddy.InitializeBoundingSphere();
+
+    //DEBUG:
+    std::cout << "Teddy: " << endl;
+    std::cout << teddy.mCenter[0] << ", " << teddy.mCenter[1] << ", " << teddy.mCenter[2] << endl;
+    std::cout << teddy.mRadius << endl;
 
     return teddy;
 }
