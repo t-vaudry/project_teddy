@@ -9,6 +9,14 @@ typedef enum
     Z_AXIS
 } ROTATION_AXIS;
 
+typedef enum
+{
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+} DIRECTION;
+
 class Camera
 {
 private:
@@ -30,7 +38,7 @@ public:
     void Tilt(const glm::vec2& newMousePosition);
     void Zoom(const glm::vec2& newMousePosition);
     void Rotate(ROTATION_AXIS axis, float sign);
-    void MoveCameraBy(const glm::vec3& movementAmount);
+    void Move(DIRECTION direction);
     void SetLookAt(const glm::vec2& newMousePosition);
     void Reset();
 

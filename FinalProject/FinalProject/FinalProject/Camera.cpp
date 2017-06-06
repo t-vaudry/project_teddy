@@ -6,7 +6,8 @@
 #include "gtc/type_ptr.hpp"
 
 #define ZOOM 0.5f
-#define ROTATE 1.0f // degree
+#define ROTATE 0.005f
+#define MOVEMENT_SPEED 0.1f
 
 Camera::Camera()
     : mPosition(0.0f, 0.0f, 25.0f)
@@ -91,18 +92,38 @@ void Camera::Rotate(ROTATION_AXIS axis, float sign)
     mRight = glm::cross(mDirection, mUp);
 }
 
-void Camera::MoveCameraBy(const glm::vec3& movementAmount)
+void Camera::Move(DIRECTION direction)
 {
-    mPosition += movementAmount;
+    switch (direction)
+    {
+    case FORWARD:
+        mPosition += MOVEMENT_SPEED * mDirection * glm::vec3(1.0f, 0.0f, 1.0f);
+        break;
+    case BACKWARD:
+        mPosition += -MOVEMENT_SPEED * mDirection * glm::vec3(1.0f, 0.0f, 1.0f);
+        break;
+    case LEFT:
+        mPosition += -MOVEMENT_SPEED * mRight * glm::vec3(1.0f, 0.0f, 1.0f);
+        break;
+    case RIGHT:
+        mPosition += MOVEMENT_SPEED * mRight * glm::vec3(1.0f, 0.0f, 1.0f);
+        break;
+    };
 }
 
 void Camera::SetLookAt(const glm::vec2& newMousePosition)
 {
-    float deltaX = 2 * newMousePosition.x / 800.0f - 1; //TODO: Global var
-    float deltaY = -(2 * newMousePosition.y / 800.0f - 1);
+    glm::vec2 delta = newMousePosition - mMousePosition;
+    if (glm::length(delta) > 50.0f)
+    {
+        mMousePosition = newMousePosition;
+        return;
+    }
 
-    //TODO: Will setting fixed position in z work? Seems so
-    mDirection = glm::normalize(glm::vec3(deltaX, deltaY, -1.0f));
+    glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
+    mDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+
+    mRight = glm::normalize(glm::cross(mDirection, mUp));
 
     mMousePosition = newMousePosition;
 }

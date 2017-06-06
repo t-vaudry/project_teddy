@@ -88,12 +88,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\soil;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glm;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glfw;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\soil;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glm;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\FinalProject;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\soil;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glm;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glfw;C:\Users\anita\Documents\COMP371\Assignments\project_teddy\FinalProject\FinalProject\glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\soil;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glm;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;opengl32.lib;glfw3.lib;legacy_stdio_definitions.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -104,10 +104,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\FinalProject;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\soil;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glm;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\soil;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glm;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glfw;C:\Users\thoma\Documents\GitHub\project_teddy\FinalProject\FinalProject\glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;SOIL.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

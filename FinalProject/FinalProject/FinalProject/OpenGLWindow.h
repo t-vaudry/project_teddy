@@ -8,13 +8,14 @@
 #include <glm.hpp>
 #include <gtx/transform.hpp>
 #include <gtc/type_ptr.hpp>
+#include <SOIL.h>
 
 #include "Camera.h"
 #include "Shape.h"
 #include "ShapeGenerator.h"
 
-#define WIDTH 800
-#define HEIGHT 800
+#define WIDTH 2000
+#define HEIGHT 2000
 #define SCALE_STEP 0.1f
 #define ROTATION_STEP 0.5f
 #define MOVE_STEP 0.25f
@@ -29,15 +30,9 @@ private:
     static int mWidth;
     static int mHeight;
     static Camera* mCamera;
-    static glm::vec3 mAxisOfRotation;
     static vector<Shape*> mShapes;
 public:
     static GLRenderMode mRenderMode;
-    static bool mAnimationToggle;
-    static bool mAxisRotationToggle;
-    static bool mSinesoidToggle;
-    static bool mTeddyToggle;
-    static int mWaves;
 
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -55,6 +50,8 @@ public:
     static GLuint AttachShaders(GLuint vertexShader, GLuint fragmentShader);
     static void AddShape(Shape* shape);
     static void BindBuffers(Shape* shape, GLuint* VBO);
+    static void BindTexture(GLuint* texture, char* path);
+    static void SetTexture(GLuint program, int index);
     static void RenderShape(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);

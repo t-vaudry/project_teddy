@@ -78,8 +78,8 @@ bool loadOBJ(const char * path, vector<Vertex> & out_vertices, glm::vec3 color)
         // Get the attributes thanks to the index
         glm::vec3 vertex = temp_vertices[vertexIndex - 1]; //get the correct vertex
 
-                                                           // Put the vertex in the std::vector
-        out_vertices.push_back(Vertex(vertex, color));
+        // Put the vertex in the std::vector
+        out_vertices.push_back(Vertex(vertex, color, glm::vec3(0.0f)));
     }
 
     return true;

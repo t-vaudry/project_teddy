@@ -54,53 +54,16 @@ int main()
     OpenGLWindow::SetPointSize(15.0f);
     OpenGLWindow::SetCamera(&mCamera);
 
-    glm::vec3 origin = glm::vec3(0.0f);
+    Shape teddy = ShapeGenerator::GenerateTeddy(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.1f));
 
-    Shape teddySpinner = ShapeGenerator::GenerateTeddy(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.1f));
-    Shape teddyRevolver = ShapeGenerator::GenerateTeddy(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.05f), glm::vec3(0.0f), glm::vec3(-10.0f, 0.0f, 0.0f));
-    Shape spinner = ShapeGenerator::GenerateCube(glm::vec3(0.0f, 0.0f, 1.0f));
-    Shape revolver = ShapeGenerator::GenerateCube(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, -10.0f));
-    Shape xAxis = ShapeGenerator::GenerateLine(glm::vec3(8.0f, 0.0f, 0.0f), origin, glm::vec3(1.0f, 0.0f, 0.0f));
-    Shape yAxis = ShapeGenerator::GenerateLine(glm::vec3(0.0f, 8.0f, 0.0f), origin, glm::vec3(0.0f, 0.0f, 0.0f));
-    Shape zAxis = ShapeGenerator::GenerateLine(glm::vec3(0.0f, 0.0f, 8.0f), origin, glm::vec3(0.0f, 1.0f, 0.0f));
-    Shape line = ShapeGenerator::GenerateLine(glm::vec3(0.0f, 10.0f, 0.0f), glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-
-    GLuint VAO, SPINNER, REVOLVER, X_AXIS, Y_AXIS, Z_AXIS, LINE, TEDDY_SPINNER, TEDDY_REVOLVER;
+    GLuint VAO, TEDDY;
     glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &SPINNER);
-    glGenBuffers(1, &REVOLVER);
-    glGenBuffers(1, &X_AXIS);
-    glGenBuffers(1, &Y_AXIS);
-    glGenBuffers(1, &Z_AXIS);
-    glGenBuffers(1, &LINE);
-    glGenBuffers(1, &TEDDY_SPINNER);
-    glGenBuffers(1, &TEDDY_REVOLVER);
+    glGenBuffers(1, &TEDDY);
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(VAO);
 
-    OpenGLWindow::BindBuffers(&spinner, &SPINNER);
-    OpenGLWindow::AddShape(&spinner);
-
-    OpenGLWindow::BindBuffers(&revolver, &REVOLVER);
-    OpenGLWindow::AddShape(&revolver);
-
-    OpenGLWindow::BindBuffers(&xAxis, &X_AXIS);
-    OpenGLWindow::AddShape(&xAxis);
-
-    OpenGLWindow::BindBuffers(&yAxis, &Y_AXIS);
-    OpenGLWindow::AddShape(&yAxis);
-
-    OpenGLWindow::BindBuffers(&zAxis, &Z_AXIS);
-    OpenGLWindow::AddShape(&zAxis);
-
-    OpenGLWindow::BindBuffers(&line, &LINE);
-    OpenGLWindow::AddShape(&line);
-
-    OpenGLWindow::BindBuffers(&teddySpinner, &TEDDY_SPINNER);
-    OpenGLWindow::AddShape(&teddySpinner);
-
-    OpenGLWindow::BindBuffers(&teddyRevolver, &TEDDY_REVOLVER);
-    OpenGLWindow::AddShape(&teddyRevolver);
+    OpenGLWindow::BindBuffers(&teddy, &TEDDY);
+    OpenGLWindow::AddShape(&teddy);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -121,59 +84,8 @@ int main()
         glEnable(GL_DEPTH_TEST);
 
         // Render
-        if (!OpenGLWindow::mTeddyToggle)
-        {
-            OpenGLWindow::RenderShape(&spinner, shaderProgram);
-            OpenGLWindow::DrawShape(&spinner, &SPINNER);
-        }
-        else
-        {
-            OpenGLWindow::RenderShape(&teddySpinner, shaderProgram);
-            OpenGLWindow::DrawShape(&teddySpinner, &TEDDY_SPINNER);
-        }
-
-        if (OpenGLWindow::mAnimationToggle)
-        {
-            spinner.mRotate.y += ROTATION_STEP;
-            teddySpinner.mRotate.y += ROTATION_STEP;
-        }
-
-        if (!OpenGLWindow::mTeddyToggle)
-        {
-            OpenGLWindow::RenderShape(&revolver, shaderProgram);
-            OpenGLWindow::DrawShape(&revolver, &REVOLVER);
-        }
-        else
-        {
-            OpenGLWindow::RenderShape(&teddyRevolver, shaderProgram);
-            OpenGLWindow::DrawShape(&teddyRevolver, &TEDDY_REVOLVER);
-        }
-
-        if (OpenGLWindow::mAnimationToggle)
-        {
-            revolver.mRotate.y += ROTATION_STEP;
-            teddyRevolver.mRotate.y += ROTATION_STEP;
-        }
-
-        if (OpenGLWindow::mSinesoidToggle)
-        {
-            revolver.mTranslate.x = (-8.0f + 2 * sinf(OpenGLWindow::mWaves*glm::radians(revolver.mRotate.y)));
-            revolver.mTranslate.z = (-8.0f + 2 * sinf(OpenGLWindow::mWaves*glm::radians(revolver.mRotate.y)));
-            teddyRevolver.mTranslate.x = (-8.0f + 2 * sinf(OpenGLWindow::mWaves*glm::radians(teddyRevolver.mRotate.y)));
-            teddyRevolver.mTranslate.z = (-8.0f + 2 * sinf(OpenGLWindow::mWaves*glm::radians(teddyRevolver.mRotate.y)));
-        }
-
-        OpenGLWindow::RenderShape(&xAxis, shaderProgram);
-        OpenGLWindow::DrawLines(&xAxis, &X_AXIS);
-
-        OpenGLWindow::RenderShape(&yAxis, shaderProgram);
-        OpenGLWindow::DrawLines(&yAxis, &Y_AXIS);
-
-        OpenGLWindow::RenderShape(&zAxis, shaderProgram);
-        OpenGLWindow::DrawLines(&zAxis, &Z_AXIS);
-
-        OpenGLWindow::RenderShape(&line, shaderProgram);
-        OpenGLWindow::DrawLines(&line, &LINE);
+        OpenGLWindow::RenderShape(&teddy, shaderProgram);
+        OpenGLWindow::DrawShape(&teddy, &TEDDY);
 
         glBindVertexArray(0);
 
@@ -181,14 +93,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
-    spinner.CleanUp();
-    revolver.CleanUp();
-    teddySpinner.CleanUp();
-    teddyRevolver.CleanUp();
-    xAxis.CleanUp();
-    yAxis.CleanUp();
-    zAxis.CleanUp();
-    line.CleanUp();
+    teddy.CleanUp();
 
     // Terminate GLFW, clearing any resources allocated by GLFW.
     glfwTerminate();

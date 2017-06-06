@@ -3,15 +3,9 @@
 
 // Public static variables
 GLRenderMode OpenGLWindow::mRenderMode = GL_TRIANGLES;
-bool OpenGLWindow::mAnimationToggle = true;
-bool OpenGLWindow::mAxisRotationToggle = false;
-bool OpenGLWindow::mSinesoidToggle = false;
-bool OpenGLWindow::mTeddyToggle = false;
-int OpenGLWindow::mWaves = 3;
 int OpenGLWindow::mWidth;
 int OpenGLWindow::mHeight;
 Camera* OpenGLWindow::mCamera;
-glm::vec3 OpenGLWindow::mAxisOfRotation = glm::vec3(0.0f, 1.0f, 0.0f);
 vector<Shape*> OpenGLWindow::mShapes;
 
 void OpenGLWindow::InitializeGLFW()
@@ -154,10 +148,31 @@ void OpenGLWindow::BindBuffers(Shape* shape, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glBufferData(GL_ARRAY_BUFFER, shape->GetVertexBufferSize(), shape->mVertices, GL_STATIC_DRAW);
 
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
+    glEnableVertexAttribArray(3);
+}
+
+void OpenGLWindow::BindTexture(GLuint* texture, char* path)
+{
+    glBindTexture(GL_TEXTURE_2D, *texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    int width, height;
+    unsigned char* image = SOIL_load_image(path, &width, &height, 0, SOIL_LOAD_RGB);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    SOIL_free_image_data(image);
+}
+
+void OpenGLWindow::SetTexture(GLuint program, int index)
+{
+    GLuint textureLoc = glGetUniformLocation(program, "textureSample");
+    glUniform1i(textureLoc, index);
 }
 
 void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
@@ -167,7 +182,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.y), mAxisOfRotation);
+    model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model_matrix = glm::translate(model_matrix, shape->mTranslate);
     model_matrix = glm::scale(model_matrix, shape->mScale);
@@ -189,10 +204,13 @@ void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
-    glDrawArrays(OpenGLWindow::mRenderMode, 0, shape->mNumberOfVertices);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glPointSize(10.0f);
+    glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -201,22 +219,18 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glPointSize(5.0f);
     glDrawArrays(GL_LINE_STRIP, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
-    if (mCamera->mIsPanning)
-        mCamera->Pan(glm::vec2(x, y));
-    if (mCamera->mIsTilting)
-        mCamera->Tilt(glm::vec2(x, y));
-    if (mCamera->mIsZooming)
-        mCamera->Zoom(glm::vec2(x, y));
-
     mCamera->SetLookAt(glm::vec2(x, y));
 }
 
@@ -226,68 +240,27 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
-    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-        mAnimationToggle = !mAnimationToggle;
-
     if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->MoveCameraBy(glm::vec3(-MOVE_STEP, 0.0f, 0.0f));
+        mCamera->Move(LEFT);
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->MoveCameraBy(glm::vec3(MOVE_STEP, 0.0f, 0.0f));
+        mCamera->Move(RIGHT);
     }
 
     if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->MoveCameraBy(glm::vec3(0.0f, 0.0f, -MOVE_STEP));
+        mCamera->Move(FORWARD);
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->MoveCameraBy(glm::vec3(0.0f, 0.0f, MOVE_STEP));
+        mCamera->Move(BACKWARD);
     }
-
-    if (key == GLFW_KEY_UP && action == GLFW_REPEAT)
-        if (!mAxisRotationToggle)
-            mCamera->Rotate(X_AXIS, 1.0f);
-
-    if (key == GLFW_KEY_DOWN && action == GLFW_REPEAT)
-        if (!mAxisRotationToggle)
-            mCamera->Rotate(X_AXIS, -1.0f);
-
-    if (key == GLFW_KEY_LEFT && action == GLFW_REPEAT)
-    {
-        if (!mAxisRotationToggle)
-            mCamera->Rotate(Z_AXIS, 1.0f);
-        else
-        {
-            mShapes[5]->mRotate.x += ROTATION_STEP; // Rotate axis
-            glm::mat3 rotation = glm::mat3(glm::rotate(glm::radians(ROTATION_STEP), glm::vec3(1.0f, 0.0f, 0.0f)));
-            mAxisOfRotation = rotation * mAxisOfRotation;
-        }
-    }
-
-    if (key == GLFW_KEY_RIGHT && action == GLFW_REPEAT)
-    {
-        if (!mAxisRotationToggle)
-            mCamera->Rotate(Z_AXIS, -1.0f);
-        else
-        {
-            mShapes[5]->mRotate.x -= ROTATION_STEP; // Rotate axis
-            glm::mat3 rotation = glm::mat3(glm::rotate(glm::radians(-ROTATION_STEP), glm::vec3(1.0f, 0.0f, 0.0f)));
-            mAxisOfRotation = rotation * mAxisOfRotation;
-        }
-    }
-
-    if (key == GLFW_KEY_B && action == GLFW_PRESS)
-        mTeddyToggle = !mTeddyToggle;
 }
 
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    mCamera->mIsPanning = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
-    mCamera->mIsTilting = button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS;
-    mCamera->mIsZooming = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
 }
