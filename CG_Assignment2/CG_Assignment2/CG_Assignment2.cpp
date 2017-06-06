@@ -213,10 +213,13 @@ set_number:
         glfwSwapBuffers(window);
     }
 
-    points->CleanUp();
+    for (int i = 0; i < number; i++)
+        points[i].CleanUp();
     spline.CleanUp();
     terrain.CleanUp();
     track.CleanUp();
+
+    delete[] points;
 
     if (!OpenGLWindow::mClose)
         goto set_number;

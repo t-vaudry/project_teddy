@@ -116,6 +116,8 @@ void OpenGLWindow::UpdateCamera()
 
     glm::vec3 position = glm::vec3((100.0f / mWidth)*x, 1.0f, (-100.0f / mHeight)*z);
     glm::vec3 direction = next - current;
+
+    // Align camera based on trajection between current point and next point
     mCamera->Set(position, direction);
 
     if (mAnimationToggle)
@@ -504,8 +506,17 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
                 vertices.push_back(mShapes[i]->mTranslate);
             }
 
-            *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 100.0f);
-            *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 5.0f);
+            // Generate spline for display and for traversing
+            if (mCurvatureToggle) // Generate based on curvature
+            {
+                *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 175.0f);
+                *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 178.0f);
+            }
+            else // Generature based on distance
+            {
+                *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 100.0f);
+                *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 5.0f);
+            }
             BindBuffers(mSplineShape, mSplineVBO, false);
             AddShape(mSplineShape);
 
@@ -521,12 +532,14 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     {
         if (mGenerateSpline)
         {
+            // Restart spline drawing
             Reset();
             mShapes.clear();
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
         else
         {
+            // Restart Camera at beginning of spline
             mCurrentCameraIndex = 0.0f;
         }
     }
@@ -535,6 +548,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     {
         if (mGenerateSpline)
         {
+            // Switch to curvature
             mCurvatureToggle = !mCurvatureToggle;
 
             delete(mSplineShape->mVertices);
@@ -549,8 +563,17 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
                 vertices.push_back(mShapes[i]->mTranslate);
             }
 
-            *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 175.0f);
-            *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 178.0f);
+            if (mCurvatureToggle) // Generate based on curvature
+            {
+                *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 175.0f);
+                *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 178.0f);
+            }
+            else // Generature based on distance
+            {
+                *mSplineShape = ShapeGenerator::GenerateCatmullRomSpline(vertices, 100.0f);
+                *mSplineTrack = ShapeGenerator::GenerateCatmullRomSpline(vertices, 5.0f);
+            }
+
             BindBuffers(mSplineShape, mSplineVBO, false);
             AddShape(mSplineShape);
         }
@@ -562,13 +585,14 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_P && action == GLFW_PRESS)
         mSplineMode = GL_POINTS;
 
-    if (key == GLFW_KEY_T && action == GLFW_PRESS)
+    if (key == GLFW_KEY_T && action == GLFW_PRESS) // Toggle textures
         mTextureToggle = !mTextureToggle;
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS && mSplineToggle)
     {
         if (mGenerateSpline)
         {
+            // Switch to 3D environment
             mGenerateSpline = false;
             mRenderMode = GL_TRIANGLES;
 
@@ -576,6 +600,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         }
         else
         {
+            // Toggle animation
             mAnimationToggle = !mAnimationToggle;
         }
     }
@@ -587,10 +612,12 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
     {
         if (mIndex < mMaxPoints + 1 && mSpawnToggle)
         {
+            SKIP(mIndex);
+
             double x, y;
             glfwGetCursorPos(window, &x, &y);
 
-            SKIP(mIndex);
+            // Add point to Shapes vector
             mShapes[mIndex]->mTranslate = glm::vec3((float)x, (float)y, 0.0f);
 
             mIndex++;

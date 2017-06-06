@@ -73,9 +73,6 @@
     <None Include="vertex.shader">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="offsetVertex.shader">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="lightVertex.shader">
       <Filter>Resource Files</Filter>
     </None>

@@ -175,7 +175,6 @@
     <None Include="fragment.shader" />
     <None Include="lightFragment.shader" />
     <None Include="lightVertex.shader" />
-    <None Include="offsetVertex.shader" />
     <None Include="trackVertex.shader" />
     <None Include="vertex.shader" />
   </ItemGroup>
