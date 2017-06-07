@@ -16,10 +16,9 @@
 
 #define WIDTH 2000
 #define HEIGHT 2000
-#define SCALE_STEP 0.1f
-#define ROTATION_STEP 0.5f
-#define MOVE_STEP 0.25f
 #define CAMERA_MOVEMENT_SPEED 0.1f
+#define SHAPE_MOVEMENT_SPEED 0.1f
+#define ROTATION_SPEED 1.0f
 
 typedef int GLRenderMode;
 
@@ -34,6 +33,7 @@ private:
     static vector<Shape*> mShapes;
 public:
     static GLRenderMode mRenderMode;
+    static int mSelectedShapeIndex;
 
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);

@@ -70,9 +70,9 @@ struct Shape
 
         //Set the shape's center and radius
         const float* centerCoords = boundingSphere.center();
-        mCenter[0] = centerCoords[0];
-        mCenter[1] = centerCoords[1];
-        mCenter[2] = centerCoords[2];
+        mCenter.x = centerCoords[0];
+        mCenter.y = centerCoords[1];
+        mCenter.z = centerCoords[2];
         mRadius = sqrt(2.0f/3.0f) * sqrt(glm::length(boundingSphere.squared_radius()));
 
         //Translate and scale the centre and radius according to the shape's translations

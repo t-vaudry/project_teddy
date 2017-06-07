@@ -8,6 +8,8 @@ int OpenGLWindow::mHeight;
 Camera* OpenGLWindow::mCamera;
 vector<Shape*> OpenGLWindow::mShapes;
 
+int OpenGLWindow::mSelectedShapeIndex = -1;
+
 void OpenGLWindow::InitializeGLFW()
 {
     cout << "Starting GLFW context, OpenGL 3.3" << endl;
@@ -181,10 +183,10 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
+    model_matrix = glm::translate(model_matrix, shape->mTranslate);
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix = glm::translate(model_matrix, shape->mTranslate);
     model_matrix = glm::scale(model_matrix, shape->mScale);
 
     glm::mat4 view_matrix;
@@ -298,14 +300,80 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
+
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && mSelectedShapeIndex != -1)
+    {
+        bool valid = true;
+
+        for (int i = 0; i < mShapes.size(); i++)
+        {
+            if (i == mSelectedShapeIndex)
+                continue;
+
+            float center_distance = glm::distance(mShapes[i]->mCenter, mShapes[mSelectedShapeIndex]->mCenter);
+            float distance = center_distance - mShapes[i]->mRadius - mShapes[mSelectedShapeIndex]->mRadius;
+
+            if (distance < 0)
+            {
+                valid = false;
+                break;
+            }
+        }
+
+        if (valid)
+            mSelectedShapeIndex = -1;
+        else
+            cout << "INVALID POSITION" << endl;
+    }
+
+    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
+    {
+        glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+        mShapes[mSelectedShapeIndex]->mTranslate += translate;
+        mShapes[mSelectedShapeIndex]->mCenter += translate;
+    }
+
+    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
+    {
+        glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+        mShapes[mSelectedShapeIndex]->mTranslate += translate;
+        mShapes[mSelectedShapeIndex]->mCenter += translate;
+    }
+
+    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
+    {
+        if (mode == GLFW_MOD_SHIFT)
+        {
+            mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += translate;
+            mShapes[mSelectedShapeIndex]->mCenter += translate;
+        }
+    }
+
+    if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
+    {
+        if (mode == GLFW_MOD_SHIFT)
+        {
+            mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+        }
+        else
+        {
+            glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += translate;
+            mShapes[mSelectedShapeIndex]->mCenter += translate;
+        }
+    }
 }
 
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     // SELECT object
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mSelectedShapeIndex == -1)
     {
-        int index = -1;
         float t = 0.0f;
         double x, y;
         glfwGetCursorPos(window, &x, &y);
@@ -323,18 +391,16 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
         {
             float temp = mShapes[i]->IsSelected(world_ray, camera_position);
 
-            if (index < 0 && temp >= 0)
+            if (mSelectedShapeIndex < 0 && temp >= 0)
             {
-                index = i;
+                mSelectedShapeIndex = i;
                 t = temp;
             }
             else if (temp >= 0 && temp < t)
             {
-                index = i;
+                mSelectedShapeIndex = i;
                 t = temp;
             }
         }
-
-        cout << "Object Selected: " << index << endl;
     }
 }
