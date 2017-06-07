@@ -46,9 +46,11 @@ struct Shape
         // Store each vertex position (vec3) in an array of points
         // ----------------------------------------------------
         float** points = new float*[mNumberOfVertices];
-        for (int i = 0; i < mNumberOfVertices; ++i) {
+        for (GLuint i = 0; i < mNumberOfVertices; ++i)
+        {
             float* p = new float[3]; //3 dimensions
-            for (int j = 0; j < 3; ++j) {
+            for (int j = 0; j < 3; ++j)
+            {
                 p[j] = mVertices[i].mPosition[j];
             }
             points[i] = p;
@@ -67,7 +69,7 @@ struct Shape
         BoundingSphere boundingSphere(3, points, points + mNumberOfVertices);
 
         //Set the shape's center and radius
-        const float * centerCoords = boundingSphere.center();
+        const float* centerCoords = boundingSphere.center();
         mCenter[0] = centerCoords[0];
         mCenter[1] = centerCoords[1];
         mCenter[2] = centerCoords[2];
@@ -77,5 +79,27 @@ struct Shape
         mCenter *= mScale[0];
         mCenter += mTranslate;
         mRadius *= mScale[0];
+    }
+
+    float IsSelected(glm::vec3& world_ray, glm::vec3& camera_position)
+    {
+        glm::vec3 difference = camera_position - mCenter;
+        float b = glm::dot(world_ray, difference);
+        float c = glm::dot(difference, difference) - pow(mRadius, 2);
+
+        float square = pow(b, 2) - c;
+
+        if (square < 0)
+            return -1.0f;
+        else if (square == 0)
+            return -b;
+        else
+        {
+            float value = sqrt(square);
+            float t1 = -b + value;
+            float t2 = -b - value;
+
+            return t1 < t2 ? t1 : t2;
+        }
     }
 };

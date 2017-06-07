@@ -235,7 +235,7 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
     //If within BV of shape, return contact point
     //Else, return desiredEndPoint
     glm::vec3 returnPos = desiredEndPos;
-    for (int i = 0; i < mShapes.size(); i++)
+    for (unsigned int i = 0; i < mShapes.size(); i++)
     {
         //Get distance from desiredEndPos to center of sphere
         glm::vec3 centreOnPlane = mShapes[i]->mCenter;
@@ -302,4 +302,39 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    // SELECT object
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        int index = -1;
+        float t = 0.0f;
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
+
+        glm::mat4 projection_matrix = glm::perspective(45.0f, GetAspectRatio(), 0.01f, 100.0f);
+        glm::mat4 view_matrix = mCamera->GetViewMatrix();
+        glm::vec3 camera_position = mCamera->GetPosition();
+
+        glm::vec4 device_ray = glm::vec4(((2.0f * x / mWidth) - 1.0f), (1.0f - (2.0f * y / mHeight)), -1.0f, 1.0f);
+        glm::vec4 eye_ray = glm::inverse(projection_matrix) * device_ray;
+        eye_ray = glm::vec4(eye_ray.x, eye_ray.y, -1.0f, 0.0f);
+        glm::vec3 world_ray = glm::normalize(glm::vec3(glm::inverse(view_matrix) * eye_ray));
+
+        for (unsigned int i = 0; i < mShapes.size(); i++)
+        {
+            float temp = mShapes[i]->IsSelected(world_ray, camera_position);
+
+            if (index < 0 && temp >= 0)
+            {
+                index = i;
+                t = temp;
+            }
+            else if (temp >= 0 && temp < t)
+            {
+                index = i;
+                t = temp;
+            }
+        }
+
+        cout << "Object Selected: " << index << endl;
+    }
 }
