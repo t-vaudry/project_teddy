@@ -42,6 +42,12 @@ public:
     void SetLookAt(const glm::vec2& newMousePosition);
     void Reset();
 
+    inline void SetPosition(glm::vec3 pos) { mPosition = pos; }
+    inline glm::vec3 GetPosition() { return mPosition; }
+
+    inline glm::vec3 GetDirection() { return mDirection; }
+    inline glm::vec3 GetRight() { return mRight; }
+
     glm::mat4 GetViewMatrix() const;
 };
 

@@ -229,6 +229,33 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos)
+{
+    //Loop through all shapes in world
+    //If within BV of shape, return contact point
+    //Else, return desiredEndPoint
+    glm::vec3 returnPos = desiredEndPos;
+    for (int i = 0; i < mShapes.size(); i++)
+    {
+        //Get distance from desiredEndPos to center of sphere (Do not use centre of miniball, but rather translation)
+        glm::vec3 centreOnPlane = mShapes[i]->mTranslate;
+        float distanceToCentre = glm::length(desiredEndPos - centreOnPlane);
+
+        //If the distance is less than the radius, we are inside, so return the contact point
+        if (distanceToCentre < mShapes[i]->mRadius)
+        {
+            glm::vec3 l = glm::normalize(desiredEndPos - startPos);
+
+            float d1 = -(glm::dot(l, startPos - centreOnPlane)) + sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
+            float d2 = -(glm::dot(l, startPos - centreOnPlane)) - sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
+            returnPos = glm::min(d1, d2) * l + startPos;
+            break;
+        }
+    }
+
+    return returnPos;
+}
+
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
     mCamera->SetLookAt(glm::vec2(x, y));
@@ -246,22 +273,30 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
     if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->Move(LEFT);
+        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->Move(RIGHT);
+        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
 
     if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->Move(FORWARD);
+        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
-        mCamera->Move(BACKWARD);
+        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
 }
 

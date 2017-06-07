@@ -86,7 +86,7 @@ Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 r
     cube.mRotate = rotate;
     cube.mTranslate = translate;
 
-    cube.InitializeBoundingSphere();
+    //cube.InitializeBoundingSphere();
 
     //DEBUG:
     std::cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
@@ -108,7 +108,7 @@ Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 
     line.mVertices = new Vertex[line.mNumberOfVertices];
     memcpy(line.mVertices, vertices, sizeof(vertices));
 
-    line.InitializeBoundingSphere();
+    //line.InitializeBoundingSphere();
 
     return line;
 }

@@ -19,6 +19,7 @@
 #define SCALE_STEP 0.1f
 #define ROTATION_STEP 0.5f
 #define MOVE_STEP 0.25f
+#define CAMERA_MOVEMENT_SPEED 0.1f
 
 typedef int GLRenderMode;
 
@@ -49,11 +50,14 @@ public:
     static GLuint CompileShader(string shaderCode, int shaderType);
     static GLuint AttachShaders(GLuint vertexShader, GLuint fragmentShader);
     static void AddShape(Shape* shape);
+
     static void BindBuffers(Shape* shape, GLuint* VBO);
     static void BindTexture(GLuint* texture, char* path);
     static void SetTexture(GLuint program, int index);
     static void RenderShape(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
+
+    static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos);
 };
 

@@ -71,7 +71,7 @@ struct Shape
         mCenter[0] = centerCoords[0];
         mCenter[1] = centerCoords[1];
         mCenter[2] = centerCoords[2];
-        mRadius = sqrt(glm::length(boundingSphere.squared_radius()));
+        mRadius = sqrt(2.0f/3.0f) * sqrt(glm::length(boundingSphere.squared_radius()));
 
         //Translate and scale the centre and radius according to the shape's translations
         mCenter += mTranslate;
