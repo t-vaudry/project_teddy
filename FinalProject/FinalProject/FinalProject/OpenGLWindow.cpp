@@ -237,8 +237,8 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
     glm::vec3 returnPos = desiredEndPos;
     for (int i = 0; i < mShapes.size(); i++)
     {
-        //Get distance from desiredEndPos to center of sphere (Do not use centre of miniball, but rather translation)
-        glm::vec3 centreOnPlane = mShapes[i]->mTranslate;
+        //Get distance from desiredEndPos to center of sphere
+        glm::vec3 centreOnPlane = mShapes[i]->mCenter;
         float distanceToCentre = glm::length(desiredEndPos - centreOnPlane);
 
         //If the distance is less than the radius, we are inside, so return the contact point
