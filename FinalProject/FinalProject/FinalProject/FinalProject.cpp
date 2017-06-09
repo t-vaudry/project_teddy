@@ -41,75 +41,94 @@ int main()
     GLuint vertexShader = OpenGLWindow::CompileShader(vertexShaderCode, GL_VERTEX_SHADER);
     CHECK_ERROR(vertexShader);
 
-    // Fragment shader
+    // Color Fragment shader
     string fragmentShaderCode = OpenGLWindow::CodeShader("fragment.shader");
     CHECK_STRING(fragmentShaderCode);
     GLuint fragmentShader = OpenGLWindow::CompileShader(fragmentShaderCode, GL_FRAGMENT_SHADER);
     CHECK_ERROR(fragmentShader);
 
+    // Texture Fragment shader
+    string textureFragmentShaderCode = OpenGLWindow::CodeShader("textureFragment.shader");
+    CHECK_STRING(textureFragmentShaderCode);
+    GLuint textureFragmentShader = OpenGLWindow::CompileShader(textureFragmentShaderCode, GL_FRAGMENT_SHADER);
+    CHECK_ERROR(textureFragmentShader);
+
     // Link shaders
     GLuint shaderProgram = OpenGLWindow::AttachShaders(vertexShader, fragmentShader);
     CHECK_ERROR(shaderProgram);
 
+    // Link shaders
+    GLuint textureShaderProgram = OpenGLWindow::AttachShaders(vertexShader, textureFragmentShader);
+    CHECK_ERROR(textureShaderProgram);
+
     OpenGLWindow::SetPointSize(15.0f);
     OpenGLWindow::SetCamera(&mCamera);
 
-    Shape teddy = ShapeGenerator::GenerateTeddy(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.1f));
-    Shape teddy2 = ShapeGenerator::GenerateTeddy(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.25f), glm::vec3(0.0f), glm::vec3(10.0f, 0.0f, 0.0f));
+    Shape object = ShapeGenerator::GenerateOBJ("Armchair.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
+    Shape ground = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f));
 
-    //DEBUG
-    Shape boundingCube = ShapeGenerator::GenerateCube(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(teddy.mRadius), glm::vec3(0.0f), teddy.mTranslate);
-    Shape debugLine = ShapeGenerator::GenerateLine(glm::vec3(0.0f),  teddy.mRadius  * glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    GLuint OBJECT_VAO, OBJECT_VBO, OBJ_TEXTURE;
+    GLuint GROUND_VAO, GROUND_VBO;
 
-    GLuint VAO, TEDDY, TEDDY2, TST_CUBE, TST_LINE;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &TEDDY);
-    glGenBuffers(1, &TEDDY2);
-    glGenBuffers(1, &TST_CUBE);
-    glGenBuffers(1, &TST_LINE);
+    glActiveTexture(GL_TEXTURE0);
+    glGenVertexArrays(1, &OBJECT_VAO);
+    glGenBuffers(1, &OBJECT_VBO);
+    glGenTextures(1, &OBJ_TEXTURE);
+
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-    glBindVertexArray(VAO);
+    glBindVertexArray(OBJECT_VAO);
 
-    OpenGLWindow::BindBuffers(&teddy, &TEDDY);
-    OpenGLWindow::AddShape(&teddy);
-
-    OpenGLWindow::BindBuffers(&teddy2, &TEDDY2);
-    OpenGLWindow::AddShape(&teddy2);
-
-    OpenGLWindow::BindBuffers(&boundingCube, &TST_CUBE);
-
-    OpenGLWindow::BindBuffers(&debugLine, &TST_LINE);
+    OpenGLWindow::BindBuffers(&object, &OBJECT_VBO);
+    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "Armchair.jpg");
+    OpenGLWindow::AddShape(&object);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    glGenVertexArrays(1, &GROUND_VAO);
+    glGenBuffers(1, &GROUND_VBO);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(GROUND_VAO);
+
+    OpenGLWindow::BindBuffers(&ground, &GROUND_VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set uniform values
+    OpenGLWindow::SetUniformFactors(shaderProgram);
+    OpenGLWindow::SetUniformFactors(textureShaderProgram);
+
+    OpenGLWindow::SetTexture(textureShaderProgram, 0, "textureSample");
 
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
         // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
-        // Clear the color and depth buffer
+
+        glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Redefine the viewport for resizing
         OpenGLWindow::DefineViewport(window);
 
-        glBindVertexArray(VAO);
-        glEnable(GL_DEPTH_TEST);
+        glBindVertexArray(OBJECT_VAO);
 
         // Render
-        OpenGLWindow::RenderShape(&teddy, shaderProgram);
-        OpenGLWindow::DrawShape(&teddy, &TEDDY);
+        OpenGLWindow::RenderShape(&object, textureShaderProgram);
+        OpenGLWindow::DrawShape(&object, &OBJECT_VBO);
 
-        OpenGLWindow::RenderShape(&teddy2, shaderProgram);
-        OpenGLWindow::DrawShape(&teddy2, &TEDDY2);
+        glBindVertexArray(0);
+        glBindVertexArray(GROUND_VAO);
 
-        OpenGLWindow::RenderShape(&boundingCube, shaderProgram);
-        OpenGLWindow::DrawShape(&boundingCube, &TST_CUBE);
-
-        OpenGLWindow::RenderShape(&debugLine, shaderProgram);
-        OpenGLWindow::DrawShape(&debugLine, &TST_LINE);
+        OpenGLWindow::RenderShape(&ground, shaderProgram);
+        OpenGLWindow::DrawShape(&ground, &GROUND_VBO);
 
         glBindVertexArray(0);
 
@@ -117,7 +136,7 @@ int main()
         glfwSwapBuffers(window);
     }
 
-    teddy.CleanUp();
+    object.CleanUp();
 
     // Terminate GLFW, clearing any resources allocated by GLFW.
     glfwTerminate();

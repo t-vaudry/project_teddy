@@ -13,17 +13,24 @@ struct Shape
         , mTranslate(glm::vec3(0.0f))
         , mCenter(glm::vec3(0.0f))
         , mRadius(1.0f)
+        , mAlpha(1.0f)
     {}
 
+    // Vertex information
     Vertex* mVertices;
     GLuint mNumberOfVertices;
+
+    // Transformations
     glm::vec3 mScale;
     glm::vec3 mRotate;
     glm::vec3 mTranslate;
     
-    //Bounding sphere
+    // Bounding sphere
     glm::vec3 mCenter;
     float mRadius;
+
+    // Transparency
+    float mAlpha;
 
     int GetVertexBufferSize()
     {

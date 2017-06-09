@@ -16,9 +16,15 @@
 
 #define WIDTH 2000
 #define HEIGHT 2000
+#define NEAR_PLANE 0.01f
+#define FAR_PLANE 100.0f
 #define CAMERA_MOVEMENT_SPEED 0.1f
 #define SHAPE_MOVEMENT_SPEED 0.1f
 #define ROTATION_SPEED 1.0f
+
+#define CONSTANT_ATTENUATION 1.0f
+#define LINEAR_ATTENUATION 0.25f
+#define QUADRATIC_ATTENUATION 0.0f
 
 typedef int GLRenderMode;
 
@@ -34,6 +40,7 @@ private:
 public:
     static GLRenderMode mRenderMode;
     static int mSelectedShapeIndex;
+    static glm::vec3 mSunLight;
 
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -53,7 +60,8 @@ public:
 
     static void BindBuffers(Shape* shape, GLuint* VBO);
     static void BindTexture(GLuint* texture, char* path);
-    static void SetTexture(GLuint program, int index);
+    static void SetUniformFactors(GLuint program);
+    static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);

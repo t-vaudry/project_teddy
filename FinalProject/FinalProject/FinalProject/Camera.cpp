@@ -6,7 +6,7 @@
 #include "gtc/type_ptr.hpp"
 
 #define ZOOM 0.5f
-#define ROTATE 0.005f
+#define ROTATE 0.001f
 #define MOVEMENT_SPEED 0.1f
 
 Camera::Camera()

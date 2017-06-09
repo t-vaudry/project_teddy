@@ -18,8 +18,10 @@ bool loadOBJ(const char * path, vector<Vertex> & out_vertices, glm::vec3 color)
 {
     printf("Loading OBJ file %s...\n", path);
 
-    vector<unsigned int> vertexIndices;
+    vector<glm::vec3> vertexIndices;
     vector<glm::vec3> temp_vertices;
+    vector<glm::vec3> temp_normals;
+    vector<glm::vec2> temp_uvs;
 
     FILE * file = fopen(path, "r");
 
@@ -45,20 +47,37 @@ bool loadOBJ(const char * path, vector<Vertex> & out_vertices, glm::vec3 color)
             fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
             temp_vertices.push_back(vertex);
         }
+        else if (strcmp(lineHeader, "vt") == 0)
+        {
+            glm::vec2 uv;
+            fscanf(file, "%f %f\n", &uv.x, &uv.y);
+            temp_uvs.push_back(uv);
+        }
+        else if (strcmp(lineHeader, "vn") == 0)
+        {
+            glm::vec3 normal;
+            fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+            temp_normals.push_back(normal);
+        }
         else if (strcmp(lineHeader, "f") == 0)
         {
             unsigned int vertexIndex[3];
+            unsigned int uvIndex[3];
+            unsigned int normalIndex[3];
 
-            int matches = fscanf(file, "%d %d %d\n", &vertexIndex[0], &vertexIndex[1], &vertexIndex[2]);
+            int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
+                          &vertexIndex[0], &uvIndex[0], &normalIndex[0],
+                          &vertexIndex[1], &uvIndex[1], &normalIndex[1],
+                          &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
 
-            if (matches != 3)
+            if (matches != 9)
             {
                 printf("File can't be read by our simple parser :-( Try exporting with other options\n");
                 return false;
             }
-            vertexIndices.push_back(vertexIndex[0]);
-            vertexIndices.push_back(vertexIndex[1]);
-            vertexIndices.push_back(vertexIndex[2]);
+            vertexIndices.push_back(glm::vec3(vertexIndex[0], uvIndex[0], normalIndex[0]));
+            vertexIndices.push_back(glm::vec3(vertexIndex[1], uvIndex[1], normalIndex[1]));
+            vertexIndices.push_back(glm::vec3(vertexIndex[2], uvIndex[2], normalIndex[2]));
         }
         else
         {
@@ -73,13 +92,17 @@ bool loadOBJ(const char * path, vector<Vertex> & out_vertices, glm::vec3 color)
     for (unsigned int i = 0; i < vertexIndices.size(); i++)
     {
         // Get the indices of its attributes
-        unsigned int vertexIndex = vertexIndices[i];
+        unsigned int vertexIndex = vertexIndices[i].x;
+        unsigned int uvIndex = vertexIndices[i].y;
+        unsigned int normalIndex = vertexIndices[i].z;
 
         // Get the attributes thanks to the index
         glm::vec3 vertex = temp_vertices[vertexIndex - 1]; //get the correct vertex
+        glm::vec3 normal = temp_normals[normalIndex - 1];
+        glm::vec2 uv = temp_uvs[uvIndex - 1];
 
         // Put the vertex in the std::vector
-        out_vertices.push_back(Vertex(vertex, color, glm::vec3(0.0f)));
+        out_vertices.push_back(Vertex(vertex, color, normal, uv));
     }
 
     return true;

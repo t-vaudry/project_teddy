@@ -9,6 +9,7 @@ Camera* OpenGLWindow::mCamera;
 vector<Shape*> OpenGLWindow::mShapes;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
+glm::vec3 OpenGLWindow::mSunLight = glm::vec3(10.0f);
 
 void OpenGLWindow::InitializeGLFW()
 {
@@ -110,7 +111,16 @@ GLuint OpenGLWindow::CompileShader(string shaderCode, int shaderType)
     if (!success)
     {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        string shaderString = shaderType == GL_VERTEX_SHADER ? "VERTEX" : "FRAGMENT";
+        string shaderString;
+        switch (shaderType)
+        {
+        case GL_VERTEX_SHADER:
+            shaderString = "VERTEX";
+            break;
+        case GL_FRAGMENT_SHADER:
+            shaderString = "FRAGMENT";
+            break;
+        };
         cerr << "ERROR::SHADER::" << shaderString << "::COMPILATION_FAILED\n" << infoLog << endl;
         return -1;
     }
@@ -171,15 +181,49 @@ void OpenGLWindow::BindTexture(GLuint* texture, char* path)
     SOIL_free_image_data(image);
 }
 
-void OpenGLWindow::SetTexture(GLuint program, int index)
+void OpenGLWindow::SetUniformFactors(GLuint program)
 {
-    GLuint textureLoc = glGetUniformLocation(program, "textureSample");
+    glUseProgram(program);
+
+    GLuint constantFactorLoc = glGetUniformLocation(program, "constantFactor");
+    GLuint linearFactorLoc = glGetUniformLocation(program, "linearFactor");
+    GLuint quadraticFactorLoc = glGetUniformLocation(program, "quadraticFactor");
+
+    GLuint ambientLightLoc = glGetUniformLocation(program, "ambientLight");
+    GLuint sunLightLoc = glGetUniformLocation(program, "sunLight");
+    GLuint farPlaneLoc = glGetUniformLocation(program, "farPlane");
+
+    float constantFactor = CONSTANT_ATTENUATION;
+    float linearFactor = LINEAR_ATTENUATION;
+    float quadraticFactor = QUADRATIC_ATTENUATION;
+
+    glm::vec3 ambient_light;
+    glm::vec3 sun_light;
+
+    ambient_light = glm::vec3(0.25f);
+    sun_light = mSunLight;
+
+    glUniform1f(constantFactorLoc, constantFactor);
+    glUniform1f(linearFactorLoc, linearFactor);
+    glUniform1f(quadraticFactorLoc, quadraticFactor);
+
+    glUniform3fv(ambientLightLoc, 1, &ambient_light[0]);
+    glUniform3fv(sunLightLoc, 1, &sun_light[0]);
+    glUniform1f(farPlaneLoc, FAR_PLANE);
+}
+
+void OpenGLWindow::SetTexture(GLuint program, int index, char* name)
+{
+    GLuint textureLoc = glGetUniformLocation(program, name);
     glUniform1i(textureLoc, index);
 }
 
 void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
 {
+    glUseProgram(program);
     GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
+    GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
+    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
@@ -193,13 +237,15 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     view_matrix = mCamera->GetViewMatrix();
 
     glm::mat4 projection_matrix;
-    projection_matrix = glm::perspective(45.0f, GetAspectRatio(), 0.01f, 100.0f);
+    projection_matrix = glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
 
     glm::mat4 mvp_matrix;
     mvp_matrix = projection_matrix * view_matrix * model_matrix;
 
     //broadcast the uniform value to the shaders
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
+    glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniform1f(alphaLoc, shape->mAlpha);
 }
 
 void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
@@ -267,7 +313,12 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 {
     //DEBUG
     if (key == GLFW_KEY_Q && action == GLFW_PRESS)
-        mRenderMode = GL_LINE_STRIP;
+    {
+        if (mRenderMode == GL_TRIANGLES)
+            mRenderMode = GL_LINE_STRIP;
+        else
+            mRenderMode = GL_TRIANGLES;
+    }
 
     //cout << key << endl;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -305,7 +356,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     {
         bool valid = true;
 
-        for (int i = 0; i < mShapes.size(); i++)
+        for (unsigned int i = 0; i < mShapes.size(); i++)
         {
             if (i == mSelectedShapeIndex)
                 continue;
@@ -321,7 +372,10 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         }
 
         if (valid)
+        {
+            mShapes[mSelectedShapeIndex]->mAlpha = 1.0f;
             mSelectedShapeIndex = -1;
+        }
         else
             cout << "INVALID POSITION" << endl;
     }
@@ -401,6 +455,11 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
                 mSelectedShapeIndex = i;
                 t = temp;
             }
+        }
+
+        if (mSelectedShapeIndex != -1)
+        {
+            mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
         }
     }
 }

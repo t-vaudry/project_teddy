@@ -27,163 +27,11 @@ Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 r
         glm::vec3(0.0f, 0.0f, -1.0f)  // 5
     };
 
-    Vertex vertexData[] = {
-        // FRONT
-        Vertex(vertices[0], color, normals[5]),
-        Vertex(vertices[6], color, normals[5]),
-        Vertex(vertices[1], color, normals[5]),
-        Vertex(vertices[0], color, normals[5]),
-        Vertex(vertices[6], color, normals[5]),
-        Vertex(vertices[5], color, normals[5]),
-
-        // BACK
-        Vertex(vertices[7], color, normals[4]),
-        Vertex(vertices[4], color, normals[4]),
-        Vertex(vertices[2], color, normals[4]),
-        Vertex(vertices[3], color, normals[4]),
-        Vertex(vertices[4], color, normals[4]),
-        Vertex(vertices[2], color, normals[4]),
-
-        // LEFT
-        Vertex(vertices[0], color, normals[3]),
-        Vertex(vertices[1], color, normals[3]),
-        Vertex(vertices[7], color, normals[3]),
-        Vertex(vertices[2], color, normals[3]),
-        Vertex(vertices[1], color, normals[3]),
-        Vertex(vertices[7], color, normals[3]),
-
-        // RIGHT
-        Vertex(vertices[6], color, normals[2]),
-        Vertex(vertices[5], color, normals[2]),
-        Vertex(vertices[4], color, normals[2]),
-        Vertex(vertices[6], color, normals[2]),
-        Vertex(vertices[3], color, normals[2]),
-        Vertex(vertices[4], color, normals[2]),
-
-        // TOP
-        Vertex(vertices[2], color, normals[0]),
-        Vertex(vertices[1], color, normals[0]),
-        Vertex(vertices[6], color, normals[0]),
-        Vertex(vertices[2], color, normals[0]),
-        Vertex(vertices[3], color, normals[0]),
-        Vertex(vertices[6], color, normals[0]),
-
-        // BOTTOM
-        Vertex(vertices[0], color, normals[1]),
-        Vertex(vertices[4], color, normals[1]),
-        Vertex(vertices[5], color, normals[1]),
-        Vertex(vertices[0], color, normals[1]),
-        Vertex(vertices[4], color, normals[1]),
-        Vertex(vertices[7], color, normals[1]),
-    };
-
-    cube.mNumberOfVertices = sizeof(vertexData) / sizeof(*vertexData);
-
-    cube.mVertices = new Vertex[cube.mNumberOfVertices];
-    memcpy(cube.mVertices, vertexData, sizeof(vertexData));
-
-    cube.mScale = scale;
-    cube.mRotate = rotate;
-    cube.mTranslate = translate;
-
-    //cube.InitializeBoundingSphere();
-
-    //DEBUG:
-    std::cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
-    std::cout << cube.mRadius << endl;
-    return cube;
-}
-
-Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 color)
-{
-    Shape line;
-
-    Vertex vertices[] = {
-        Vertex(first, color, glm::vec3(0.0f)),
-        Vertex(second, color, glm::vec3(0.0f))
-    };
-
-    line.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
-
-    line.mVertices = new Vertex[line.mNumberOfVertices];
-    memcpy(line.mVertices, vertices, sizeof(vertices));
-
-    //line.InitializeBoundingSphere();
-
-    return line;
-}
-
-Shape ShapeGenerator::GenerateTeddy(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
-{
-    Shape teddy;
-
-    vector<Vertex> vertices;
-    loadOBJ("teddy.obj", vertices, color);
-
-    teddy.mNumberOfVertices = vertices.size();
-
-    teddy.mVertices = new Vertex[teddy.mNumberOfVertices];
-    memcpy(teddy.mVertices, &vertices[0], sizeof(Vertex) * vertices.size());
-
-    teddy.mScale = scale;
-    teddy.mRotate = rotate;
-    teddy.mTranslate = translate;
-
-    teddy.InitializeBoundingSphere();
-
-    //DEBUG:
-    std::cout << "Teddy: " << endl;
-    std::cout << teddy.mCenter[0] << ", " << teddy.mCenter[1] << ", " << teddy.mCenter[2] << endl;
-    std::cout << teddy.mRadius << endl;
-
-    return teddy;
-}
-
-Shape ShapeGenerator::GeneratePoint(glm::vec2 position, glm::vec3 color)
-{
-    Shape point;
-
-    Vertex vertices[] = {
-        Vertex(glm::vec3(position, 0.0f), color, glm::vec3(0.0f))
-    };
-
-    point.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
-
-    point.mVertices = new Vertex[point.mNumberOfVertices];
-    memcpy(point.mVertices, vertices, sizeof(vertices));
-
-    return point;
-}
-
-Shape ShapeGenerator::GenerateTrack(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
-{
-    Shape track;
-
-    glm::vec3 vertices[] = {
-        glm::vec3(-2.0f, -0.1f, -0.1f), // 0
-        glm::vec3(-2.0f, +0.1f, -0.1f), // 1
-        glm::vec3(-2.0f, +0.1f, +0.1f), // 2
-        glm::vec3(+2.0f, +0.1f, +0.1f), // 3
-        glm::vec3(+2.0f, -0.1f, +0.1f), // 4
-        glm::vec3(+2.0f, -0.1f, -0.1f), // 5
-        glm::vec3(+2.0f, +0.1f, -0.1f), // 6
-        glm::vec3(-2.0f, -0.1f, +0.1f), // 7
-    };
-
-    glm::vec3 normals[] = {
-        glm::vec3(0.0f, +1.0f, 0.0f), // 0
-        glm::vec3(0.0f, -1.0f, 0.0f), // 1
-        glm::vec3(+1.0f, 0.0f, 0.0f), // 2
-        glm::vec3(-1.0f, 0.0f, 0.0f), // 3
-        glm::vec3(0.0f, 0.0f, +1.0f), // 4
-        glm::vec3(0.0f, 0.0f, -1.0f)  // 5
-    };
-
     glm::vec2 uvs[] = {
-        glm::vec2(0.0f, 0.0f), // 0
-        glm::vec2(0.0f, 1.0f), // 1
-        glm::vec2(1.0f, 0.0f), // 2
-        glm::vec2(1.0f, 1.0f)  // 3
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(0.0f, 1.0f),
+        glm::vec2(1.0f, 0.0f),
+        glm::vec2(1.0f, 1.0f)
     };
 
     Vertex vertexData[] = {
@@ -236,16 +84,82 @@ Shape ShapeGenerator::GenerateTrack(glm::vec3 color, glm::vec3 scale, glm::vec3 
         Vertex(vertices[7], color, normals[1], uvs[0]),
     };
 
-    track.mNumberOfVertices = sizeof(vertexData) / sizeof(*vertexData);
+    cube.mNumberOfVertices = sizeof(vertexData) / sizeof(*vertexData);
 
-    track.mVertices = new Vertex[track.mNumberOfVertices];
-    memcpy(track.mVertices, vertexData, sizeof(vertexData));
+    cube.mVertices = new Vertex[cube.mNumberOfVertices];
+    memcpy(cube.mVertices, vertexData, sizeof(vertexData));
 
-    track.mScale = scale;
-    track.mRotate = rotate;
-    track.mTranslate = translate;
+    cube.mScale = scale;
+    cube.mRotate = rotate;
+    cube.mTranslate = translate;
 
-    return track;
+    cube.InitializeBoundingSphere();
+
+    //DEBUG:
+    std::cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
+    std::cout << cube.mRadius << endl;
+    return cube;
+}
+
+Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 color)
+{
+    Shape line;
+
+    Vertex vertices[] = {
+        Vertex(first, color, glm::vec3(0.0f)),
+        Vertex(second, color, glm::vec3(0.0f))
+    };
+
+    line.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
+
+    line.mVertices = new Vertex[line.mNumberOfVertices];
+    memcpy(line.mVertices, vertices, sizeof(vertices));
+
+    //line.InitializeBoundingSphere();
+
+    return line;
+}
+
+Shape ShapeGenerator::GenerateOBJ(const char* path, glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
+{
+    Shape obj;
+
+    vector<Vertex> vertices;
+    loadOBJ(path, vertices, color);
+
+    obj.mNumberOfVertices = vertices.size();
+
+    obj.mVertices = new Vertex[obj.mNumberOfVertices];
+    memcpy(obj.mVertices, &vertices[0], sizeof(Vertex) * vertices.size());
+
+    obj.mScale = scale;
+    obj.mRotate = rotate;
+    obj.mTranslate = translate;
+
+    obj.InitializeBoundingSphere();
+
+    //DEBUG:
+    std::cout << "obj: " << endl;
+    std::cout << obj.mCenter[0] << ", " << obj.mCenter[1] << ", " << obj.mCenter[2] << endl;
+    std::cout << obj.mRadius << endl;
+
+    return obj;
+}
+
+Shape ShapeGenerator::GeneratePoint(glm::vec2 position, glm::vec3 color)
+{
+    Shape point;
+
+    Vertex vertices[] = {
+        Vertex(glm::vec3(position, 0.0f), color, glm::vec3(0.0f))
+    };
+
+    point.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
+
+    point.mVertices = new Vertex[point.mNumberOfVertices];
+    memcpy(point.mVertices, vertices, sizeof(vertices));
+
+    return point;
 }
 
 Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
@@ -293,6 +207,7 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
     terrain.mVertices = new Vertex[terrain.mNumberOfVertices];
     memcpy(terrain.mVertices, vertices, sizeof(vertices));
 
-    terrain.mScale = glm::vec3(10.0f);
+    terrain.mScale = glm::vec3(100.0f);
+    terrain.mTranslate = glm::vec3(0.0f, -1.0f, 0.0f);
     return terrain;
 }
