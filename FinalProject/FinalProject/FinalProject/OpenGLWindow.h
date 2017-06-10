@@ -17,7 +17,7 @@
 #define WIDTH 2000
 #define HEIGHT 2000
 #define NEAR_PLANE 0.01f
-#define FAR_PLANE 100.0f
+#define FAR_PLANE 1000.0f
 #define CAMERA_MOVEMENT_SPEED 0.1f
 #define SHAPE_MOVEMENT_SPEED 0.1f
 #define ROTATION_SPEED 1.0f
@@ -59,11 +59,13 @@ public:
     static void AddShape(Shape* shape);
 
     static void BindBuffers(Shape* shape, GLuint* VBO);
+    static void BindSkyboxTexture(GLuint* texture, vector<const GLchar*> faces);
     static void BindTexture(GLuint* texture, char* path);
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
+    static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
 
     static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos);

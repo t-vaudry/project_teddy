@@ -41,21 +41,33 @@ int main()
     GLuint vertexShader = OpenGLWindow::CompileShader(vertexShaderCode, GL_VERTEX_SHADER);
     CHECK_ERROR(vertexShader);
 
-    // Color Fragment shader
+    string vertexShaderCodeSKYBOX = OpenGLWindow::CodeShader("skyboxVertex.shader");
+    CHECK_STRING(vertexShaderCodeSKYBOX);
+    GLuint vertexShaderSKYBOX = OpenGLWindow::CompileShader(vertexShaderCodeSKYBOX, GL_VERTEX_SHADER);
+    CHECK_ERROR(vertexShaderSKYBOX);
+
+    // Fragment shader
     string fragmentShaderCode = OpenGLWindow::CodeShader("fragment.shader");
     CHECK_STRING(fragmentShaderCode);
     GLuint fragmentShader = OpenGLWindow::CompileShader(fragmentShaderCode, GL_FRAGMENT_SHADER);
     CHECK_ERROR(fragmentShader);
 
+    string fragmentShaderCodeSKYBOX = OpenGLWindow::CodeShader("skyboxFragment.shader");
+    CHECK_STRING(fragmentShaderCodeSKYBOX);
+    GLuint fragmentShaderSKYBOX = OpenGLWindow::CompileShader(fragmentShaderCodeSKYBOX, GL_FRAGMENT_SHADER);
+    CHECK_ERROR(fragmentShaderSKYBOX);
     // Texture Fragment shader
     string textureFragmentShaderCode = OpenGLWindow::CodeShader("textureFragment.shader");
     CHECK_STRING(textureFragmentShaderCode);
     GLuint textureFragmentShader = OpenGLWindow::CompileShader(textureFragmentShaderCode, GL_FRAGMENT_SHADER);
-    CHECK_ERROR(textureFragmentShader);
+    CHECK_ERROR(textureFragmentShader);    
 
     // Link shaders
     GLuint shaderProgram = OpenGLWindow::AttachShaders(vertexShader, fragmentShader);
     CHECK_ERROR(shaderProgram);
+
+    GLuint shaderProgramSKYBOX = OpenGLWindow::AttachShaders(vertexShaderSKYBOX, fragmentShaderSKYBOX);
+    CHECK_ERROR(shaderProgramSKYBOX);
 
     // Link shaders
     GLuint textureShaderProgram = OpenGLWindow::AttachShaders(vertexShader, textureFragmentShader);
@@ -67,12 +79,40 @@ int main()
     Shape object = ShapeGenerator::GenerateOBJ("Armchair.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     Shape ground = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f));
 
+    //Skybox
+    Shape skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
+
     GLuint OBJECT_VAO, OBJECT_VBO, OBJ_TEXTURE;
     GLuint GROUND_VAO, GROUND_VBO;
+    GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
 
+    //----Skybox
+    glGenVertexArrays(1, &SKYBOX_VAO);
+    glGenBuffers(1, &SKYBOX_VBO);
+    glGenBuffers(1, &SKYBOX_TEXTURE);
+
+    glBindVertexArray(SKYBOX_VAO);
+    OpenGLWindow::BindBuffers(&skybox, &SKYBOX_VBO);
+
+    vector<const GLchar*> faces;
+    faces.push_back("right.jpg");
+    faces.push_back("left.jpg");
+    faces.push_back("top.jpg");
+    faces.push_back("bottom.jpg");
+    faces.push_back("back.jpg");
+    faces.push_back("front.jpg");
     glActiveTexture(GL_TEXTURE0);
+    OpenGLWindow::BindSkyboxTexture(&SKYBOX_TEXTURE, faces);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, SKYBOX_TEXTURE);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Object
     glGenVertexArrays(1, &OBJECT_VAO);
     glGenBuffers(1, &OBJECT_VBO);
+
+    glActiveTexture(GL_TEXTURE0);
     glGenTextures(1, &OBJ_TEXTURE);
 
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
@@ -85,6 +125,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //----Ground
     glGenVertexArrays(1, &GROUND_VAO);
     glGenBuffers(1, &GROUND_VBO);
 
@@ -95,6 +136,8 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    //----End
 
     // Enable blending
     glEnable(GL_BLEND);
@@ -116,19 +159,30 @@ int main()
 
         OpenGLWindow::DefineViewport(window);
 
-        glBindVertexArray(OBJECT_VAO);
-
         // Render
+
+        //SKYBOX
+        glBindVertexArray(SKYBOX_VAO);
+        glDepthMask(GL_FALSE);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, SKYBOX_TEXTURE);
+        OpenGLWindow::SetTexture(shaderProgramSKYBOX, 0, "textureSample");
+        OpenGLWindow::RenderShape(&skybox, shaderProgramSKYBOX);
+        OpenGLWindow::DrawSkybox(&skybox, &SKYBOX_VBO);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        glDepthMask(GL_TRUE);
+        glBindVertexArray(0);
+
+        //OBJECT
+        glBindVertexArray(OBJECT_VAO);
         OpenGLWindow::SetTexture(textureShaderProgram, 0, "textureSample");
         OpenGLWindow::RenderShape(&object, textureShaderProgram);
         OpenGLWindow::DrawShape(&object, &OBJECT_VBO);
-
         glBindVertexArray(0);
-        glBindVertexArray(GROUND_VAO);
 
+        //GROUND
+        glBindVertexArray(GROUND_VAO);
         OpenGLWindow::RenderShape(&ground, shaderProgram);
         OpenGLWindow::DrawShape(&ground, &GROUND_VBO);
-
         glBindVertexArray(0);
 
         // Swap the screen buffers

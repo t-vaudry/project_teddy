@@ -170,6 +170,29 @@ void OpenGLWindow::BindBuffers(Shape* shape, GLuint* VBO)
     glEnableVertexAttribArray(3);
 }
 
+void OpenGLWindow::BindSkyboxTexture(GLuint* texture, vector<const GLchar*> faces)
+{
+    int width, height;
+    unsigned char* image = nullptr;
+    glBindTexture(GL_TEXTURE_CUBE_MAP, *texture);
+    for (GLuint i = 0; i < faces.size(); i++)
+    {
+        image = SOIL_load_image(faces[i], &width, &height, 0, SOIL_LOAD_RGB);
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+            GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image
+            );
+        SOIL_free_image_data(image); //free resources
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
 void OpenGLWindow::BindTexture(GLuint* texture, char* path)
 {
     glBindTexture(GL_TEXTURE_2D, *texture);
@@ -257,6 +280,16 @@ void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glPointSize(10.0f);
+    glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glPointSize(10.0f);
     glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -432,7 +465,7 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
         double x, y;
         glfwGetCursorPos(window, &x, &y);
 
-        glm::mat4 projection_matrix = glm::perspective(45.0f, GetAspectRatio(), 0.01f, 100.0f);
+        glm::mat4 projection_matrix = glm::perspective(45.0f, GetAspectRatio(), 0.01f, 1000.0f);
         glm::mat4 view_matrix = mCamera->GetViewMatrix();
         glm::vec3 camera_position = mCamera->GetPosition();
 
