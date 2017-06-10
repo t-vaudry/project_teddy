@@ -3,6 +3,10 @@
 
 #include <iostream>
 
+float ShapeGenerator::mWallWidth = 1.0f;
+float ShapeGenerator::mWallHeight = 1.0f;
+float ShapeGenerator::mWallDepth = 1.0f;
+
 Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
 {
     Shape cube;
@@ -200,6 +204,11 @@ Shape ShapeGenerator::GenerateQuad(glm::vec3 color, float width, float height, f
     return quad;
 }
 
+Shape ShapeGenerator::GenerateWall()
+{
+    return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight, mWallDepth);
+}
+
 Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 color)
 {
     Shape line;
@@ -309,4 +318,73 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
     terrain.mScale = glm::vec3(100.0f);
     terrain.mTranslate = glm::vec3(0.0f, -1.0f, 0.0f);
     return terrain;
+}
+
+void ShapeGenerator::SetWallDimensions(float w, float h, float d)
+{
+    mWallWidth = w;
+    mWallHeight = h;
+    mWallDepth = d;
+}
+
+vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
+{
+    vector<glm::mat4> model_matrices;
+
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+    int backWallLength = 10;
+    int sideWallLength = 10;
+
+    //S1
+    model_matrices.push_back(glm::translate(model_matrix, glm::vec3(25.0f, 0.0f, 25.0f)));
+    for (int i = 0; i < backWallLength; i++)
+    {
+        model_matrices.push_back(glm::translate(model_matrices[i], glm::vec3(mWallWidth, 0.0f, 0.0f)));
+    }
+
+    glm::mat4 nextWallBegin = model_matrices[model_matrices.size() - 1];
+
+    nextWallBegin = glm::translate(nextWallBegin, glm::vec3(+mWallWidth / 2.0f, 0.0f, 0.0f));
+    nextWallBegin = glm::rotate(nextWallBegin, 90.0f * 0.0174533f, glm::vec3(0.0f, 1.0f, 0.0f));
+    nextWallBegin = glm::translate(nextWallBegin, glm::vec3(-mWallWidth / 2.0f, 0.0f, 0.0f));
+
+    //S6
+    for (int i = 0; i < sideWallLength; i++)
+    {
+        model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, -(backWallLength + 1))));
+    }
+
+    //S3
+    for (int i = 0; i < backWallLength + 1; i++)
+    {
+        //Doorway
+        if (i == backWallLength / 4)
+            continue;
+
+        model_matrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, 0.0f, mWallWidth * sideWallLength/2.0f)));
+    }
+
+    //S5
+    for (int i = 0; i < backWallLength/2 + 1; i++)
+    {
+        model_matrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, 0.0f, mWallWidth * sideWallLength)));
+    }
+
+    //S4
+    for (int i = 0; i < sideWallLength; i++)
+    {
+        //Doorway
+        if (i == sideWallLength / 4)
+            continue;
+
+        model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, -(backWallLength / 2))));
+    }
+
+    //S2
+    for (int i = 0; i < sideWallLength/2 + 1; i++)
+    {
+        model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, 0.0f)));
+    }
+
+    return model_matrices;
 }

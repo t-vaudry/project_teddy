@@ -71,8 +71,6 @@ public:
     static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
 
-    static vector<glm::mat4> GenerateWallModelMatrices();
-
     static glm::mat4 GetProjectionMatrix();
 
     static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos);

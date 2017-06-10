@@ -409,17 +409,6 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
     return returnPos;
 }
 
-vector<glm::mat4> OpenGLWindow::GenerateWallModelMatrices()
-{
-    vector<glm::mat4> model_matrices;
-
-    glm::mat4 model_matrix = glm::mat4(1.0f);
-    model_matrices.push_back(model_matrix);
-    model_matrices.push_back(glm::translate(model_matrix, glm::vec3(25.0f, 0.0f, 0.0f)));
-
-    return model_matrices;
-}
-
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
     mCamera->SetLookAt(glm::vec2(x, y));

@@ -86,7 +86,9 @@ int main()
 
     Shape object = ShapeGenerator::GenerateOBJ("Armchair.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     Shape ground = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f));
-    Shape wall = ShapeGenerator::GenerateQuad(glm::vec3(1.0f), 10.0f, 20.0f, 2.5f, glm::vec3(0.0f), glm::vec3(10.0f, 0.0f, 5.0f));
+
+    ShapeGenerator::SetWallDimensions(1.0f, 2.0f, 0.25f);
+    Shape wall = ShapeGenerator::GenerateWall();
 
     //Skybox
     Shape skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
@@ -152,16 +154,16 @@ int main()
     glGenBuffers(1, &WALL_VBO);
     glGenBuffers(1, &WALL_MODEL_MATRIX);
 
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE1);
     glGenTextures(1, &WALL_TEXTURE);
 
     // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
     glBindVertexArray(WALL_VAO);
 
-    vector<glm::mat4> wall_model = OpenGLWindow::GenerateWallModelMatrices();
+    vector<glm::mat4> wall_model = ShapeGenerator::GenerateWallModelMatrices();
    OpenGLWindow::BindBuffers(&wall, &WALL_VBO);
    OpenGLWindow::BindModelBuffers(wall_model, &WALL_MODEL_MATRIX);
-   OpenGLWindow::BindTexture(&WALL_TEXTURE, "Armchair.jpg");
+   OpenGLWindow::BindTexture(&WALL_TEXTURE, "wallpaper.jpg");
    // OpenGLWindow::AddShape(&wall);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -222,7 +224,7 @@ int main()
         //WALL
         glBindVertexArray(WALL_VAO);
         glUseProgram(instancedShaderProgram);
-        OpenGLWindow::SetTexture(instancedShaderProgram, 0, "textureSample");
+        OpenGLWindow::SetTexture(instancedShaderProgram, 1, "textureSample");
         OpenGLWindow::RenderInstancedShape(&wall, instancedShaderProgram);
         OpenGLWindow::DrawInstancedShape(&wall, wall_model.size(), &WALL_VAO, &WALL_VBO);
         glBindVertexArray(0);
