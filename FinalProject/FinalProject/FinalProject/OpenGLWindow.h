@@ -61,12 +61,19 @@ public:
     static void BindBuffers(Shape* shape, GLuint* VBO);
     static void BindSkyboxTexture(GLuint* texture, vector<const GLchar*> faces);
     static void BindTexture(GLuint* texture, char* path);
+    static void BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO);
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
     static void DrawShape(Shape* shape, GLuint* VBO);
+    static void RenderInstancedShape(Shape* shape, GLuint program);
+    static void DrawInstancedShape(Shape* shape, int size, GLuint* VAO, GLuint* VBO);
     static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
+
+    static vector<glm::mat4> GenerateWallModelMatrices();
+
+    static glm::mat4 GetProjectionMatrix();
 
     static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos);
 };

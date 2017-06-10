@@ -46,6 +46,11 @@ int main()
     GLuint vertexShaderSKYBOX = OpenGLWindow::CompileShader(vertexShaderCodeSKYBOX, GL_VERTEX_SHADER);
     CHECK_ERROR(vertexShaderSKYBOX);
 
+    string vertexShaderCodeInstanced = OpenGLWindow::CodeShader("instancedVertex.shader");
+    CHECK_STRING(vertexShaderCodeInstanced);
+    GLuint vertexShaderInstanced = OpenGLWindow::CompileShader(vertexShaderCodeInstanced, GL_VERTEX_SHADER);
+    CHECK_ERROR(vertexShaderInstanced);
+
     // Fragment shader
     string fragmentShaderCode = OpenGLWindow::CodeShader("fragment.shader");
     CHECK_STRING(fragmentShaderCode);
@@ -56,6 +61,7 @@ int main()
     CHECK_STRING(fragmentShaderCodeSKYBOX);
     GLuint fragmentShaderSKYBOX = OpenGLWindow::CompileShader(fragmentShaderCodeSKYBOX, GL_FRAGMENT_SHADER);
     CHECK_ERROR(fragmentShaderSKYBOX);
+
     // Texture Fragment shader
     string textureFragmentShaderCode = OpenGLWindow::CodeShader("textureFragment.shader");
     CHECK_STRING(textureFragmentShaderCode);
@@ -73,11 +79,14 @@ int main()
     GLuint textureShaderProgram = OpenGLWindow::AttachShaders(vertexShader, textureFragmentShader);
     CHECK_ERROR(textureShaderProgram);
 
+    GLuint instancedShaderProgram = OpenGLWindow::AttachShaders(vertexShaderInstanced, textureFragmentShader);
+
     OpenGLWindow::SetPointSize(15.0f);
     OpenGLWindow::SetCamera(&mCamera);
 
     Shape object = ShapeGenerator::GenerateOBJ("Armchair.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     Shape ground = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f));
+    Shape wall = ShapeGenerator::GenerateQuad(glm::vec3(1.0f), 10.0f, 20.0f, 2.5f, glm::vec3(0.0f), glm::vec3(10.0f, 0.0f, 5.0f));
 
     //Skybox
     Shape skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
@@ -85,6 +94,7 @@ int main()
     GLuint OBJECT_VAO, OBJECT_VBO, OBJ_TEXTURE;
     GLuint GROUND_VAO, GROUND_VBO;
     GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
+    GLuint WALL_VAO, WALL_VBO, WALL_MODEL_MATRIX, WALL_TEXTURE;
 
     //----Skybox
     glGenVertexArrays(1, &SKYBOX_VAO);
@@ -137,6 +147,26 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //----Wall
+    glGenVertexArrays(1, &WALL_VAO);
+    glGenBuffers(1, &WALL_VBO);
+    glGenBuffers(1, &WALL_MODEL_MATRIX);
+
+    glActiveTexture(GL_TEXTURE0);
+    glGenTextures(1, &WALL_TEXTURE);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(WALL_VAO);
+
+    vector<glm::mat4> wall_model = OpenGLWindow::GenerateWallModelMatrices();
+   OpenGLWindow::BindBuffers(&wall, &WALL_VBO);
+   OpenGLWindow::BindModelBuffers(wall_model, &WALL_MODEL_MATRIX);
+   OpenGLWindow::BindTexture(&WALL_TEXTURE, "Armchair.jpg");
+   // OpenGLWindow::AddShape(&wall);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     //----End
 
     // Enable blending
@@ -146,6 +176,10 @@ int main()
     // Set uniform values
     OpenGLWindow::SetUniformFactors(shaderProgram);
     OpenGLWindow::SetUniformFactors(textureShaderProgram);
+    OpenGLWindow::SetUniformFactors(instancedShaderProgram);
+    glUseProgram(instancedShaderProgram);
+    GLuint vpLoc = glGetUniformLocation(instancedShaderProgram, "vp_matrix");
+    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(OpenGLWindow::GetProjectionMatrix() * mCamera.GetViewMatrix()));
 
     // Game loop
     while (!glfwWindowShouldClose(window))
@@ -185,7 +219,15 @@ int main()
         OpenGLWindow::DrawShape(&ground, &GROUND_VBO);
         glBindVertexArray(0);
 
-        // Swap the screen buffers
+        //WALL
+        glBindVertexArray(WALL_VAO);
+        glUseProgram(instancedShaderProgram);
+        OpenGLWindow::SetTexture(instancedShaderProgram, 0, "textureSample");
+        OpenGLWindow::RenderInstancedShape(&wall, instancedShaderProgram);
+        OpenGLWindow::DrawInstancedShape(&wall, wall_model.size(), &WALL_VAO, &WALL_VBO);
+        glBindVertexArray(0);
+
+        //Swap the screen buffers
         glfwSwapBuffers(window);
     }
 

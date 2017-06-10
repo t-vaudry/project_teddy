@@ -204,6 +204,33 @@ void OpenGLWindow::BindTexture(GLuint* texture, char* path)
     SOIL_free_image_data(image);
 }
 
+
+void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+
+    // Bind data
+    if (model.size() > 0)
+        glBufferData(GL_ARRAY_BUFFER, model.size() * sizeof(glm::mat4), &model[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribDivisor(4, 1);
+    glEnableVertexAttribArray(4);
+
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 4));
+    glVertexAttribDivisor(5, 1);
+    glEnableVertexAttribArray(5);
+
+    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 8));
+    glVertexAttribDivisor(6, 1);
+    glEnableVertexAttribArray(6);
+
+    glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 12));
+    glVertexAttribDivisor(7, 1);
+    glEnableVertexAttribArray(7);
+}
+
+
 void OpenGLWindow::SetUniformFactors(GLuint program)
 {
     glUseProgram(program);
@@ -285,6 +312,46 @@ void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VAO, GLuint* VBO)
+{
+    glBindVertexArray(*VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
+    glPointSize(10.0f);
+    glDrawArraysInstanced(mRenderMode, 0, shape->mNumberOfVertices, size);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
+void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
+{
+    glUseProgram(program);
+    GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
+    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+
+    glm::mat4 view_matrix;
+    view_matrix = mCamera->GetViewMatrix();
+
+    glm::mat4 projection_matrix;
+    projection_matrix = glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
+
+    glm::mat4 vp_matrix;
+    vp_matrix = projection_matrix * view_matrix;
+
+    //broadcast the uniform value to the shaders
+    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
+    glUniform1f(alphaLoc, shape->mAlpha);
+}
+
 void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
@@ -308,6 +375,11 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
     glPointSize(5.0f);
     glDrawArrays(GL_LINE_STRIP, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+glm::mat4 OpenGLWindow::GetProjectionMatrix()
+{
+    return glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
 }
 
 glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos)
@@ -335,6 +407,17 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
     }
 
     return returnPos;
+}
+
+vector<glm::mat4> OpenGLWindow::GenerateWallModelMatrices()
+{
+    vector<glm::mat4> model_matrices;
+
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+    model_matrices.push_back(model_matrix);
+    model_matrices.push_back(glm::translate(model_matrix, glm::vec3(25.0f, 0.0f, 0.0f)));
+
+    return model_matrices;
 }
 
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
