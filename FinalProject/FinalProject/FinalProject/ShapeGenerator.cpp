@@ -259,7 +259,7 @@ Shape ShapeGenerator::GeneratePoint(glm::vec2 position, glm::vec3 color)
     Shape point;
 
     Vertex vertices[] = {
-        Vertex(glm::vec3(position, 0.0f), color, glm::vec3(0.0f))
+        Vertex(glm::vec3(position.x, -1.0f, position.y), color, glm::vec3(0.0f))
     };
 
     point.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
@@ -270,28 +270,41 @@ Shape ShapeGenerator::GeneratePoint(glm::vec2 position, glm::vec3 color)
     return point;
 }
 
-Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
+Shape ShapeGenerator::GenerateTerrain(glm::vec3 color, float height, bool inverse)
 {
     Shape terrain;
 
-    glm::vec3 normal = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 normal;
+
+    if (inverse)
+        normal = glm::vec3(0.0f, -1.0f, 0.0f);
+    else
+        normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
     Vertex vertices[] = {
         Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal, glm::vec2(0.0f, 0.0f)),
         Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
         Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
 
+        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
         Vertex(glm::vec3(0.0f,0.0f,0.0f), color, normal, glm::vec2(0.0f, 0.0f)),
         Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
-        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
 
         Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
         Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
         Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f)),
 
-        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
         Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.0f), color, normal, glm::vec2(0.5f, 0.0f)),
         Vertex(glm::vec3(1.0f,0.0f,0.0f), color, normal, glm::vec2(1.0f, 0.0f)),
+
+        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f)),
+        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
+
+        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
+        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
 
         Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
         Vertex(glm::vec3(0.0f,0.0f,1.0f), color, normal, glm::vec2(0.0f, 1.0f)),
@@ -300,14 +313,6 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
         Vertex(glm::vec3(0.0f,0.0f,0.5f), color, normal, glm::vec2(0.0f, 0.5f)),
         Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
         Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
-
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
-        Vertex(glm::vec3(0.5f,0.0f,1.0f), color, normal, glm::vec2(0.5f, 1.0f)),
-        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
-
-        Vertex(glm::vec3(0.5f,0.0f,0.5f), color, normal, glm::vec2(0.5f, 0.5f)),
-        Vertex(glm::vec3(1.0f,0.0f,1.0f), color, normal, glm::vec2(1.0f, 1.0f)),
-        Vertex(glm::vec3(1.0f,0.0f,0.5f), color, normal, glm::vec2(1.0f, 0.5f))
     };
 
     terrain.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
@@ -315,8 +320,8 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color)
     terrain.mVertices = new Vertex[terrain.mNumberOfVertices];
     memcpy(terrain.mVertices, vertices, sizeof(vertices));
 
-    terrain.mScale = glm::vec3(100.0f);
-    terrain.mTranslate = glm::vec3(0.0f, -1.0f, 0.0f);
+    terrain.mScale = glm::vec3(1.0f);
+    terrain.mTranslate = glm::vec3(24.5f, height, 25.0f);
     return terrain;
 }
 
@@ -387,4 +392,25 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
     }
 
     return model_matrices;
+}
+
+vector<glm::mat4> ShapeGenerator::GeneratePlaneModelMatrices(Shape* shape)
+{
+    int index = 0;
+    vector<glm::mat4> modelMatrices;
+    for (float i = 0.0f; i < 11.0f; i += 1.0f)
+    {
+        for (float j = 0.0f; j < 10.0f; j += 1.0f)
+        {
+            if (i < 6.0f || j < 5.0f)
+            {
+                modelMatrices.push_back(glm::mat4(1.0f));
+                modelMatrices[index] = glm::translate(modelMatrices[index], glm::vec3(i, 0.0f, j) + shape->mTranslate);
+                modelMatrices[index] = glm::scale(modelMatrices[index], shape->mScale);
+                index++;
+            }
+        }
+    }
+
+    return modelMatrices;
 }

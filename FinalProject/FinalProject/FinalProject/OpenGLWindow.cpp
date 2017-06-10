@@ -9,7 +9,7 @@ Camera* OpenGLWindow::mCamera;
 vector<Shape*> OpenGLWindow::mShapes;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
-glm::vec3 OpenGLWindow::mSunLight = glm::vec3(10.0f);
+glm::vec3 OpenGLWindow::mSunLight = glm::vec3(28.0f, 0.0f, 28.0f);
 
 void OpenGLWindow::InitializeGLFW()
 {
@@ -298,36 +298,25 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniform1f(alphaLoc, shape->mAlpha);
 }
 
+void OpenGLWindow::DrawPoint(Shape* shape, GLuint* VBO)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glDrawArrays(GL_POINTS, 0, shape->mNumberOfVertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 void OpenGLWindow::DrawShape(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
-    glPointSize(10.0f);
     glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VAO, GLuint* VBO)
+void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VBO)
 {
-    glBindVertexArray(*VAO);
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
-    glPointSize(10.0f);
     glDrawArraysInstanced(mRenderMode, 0, shape->mNumberOfVertices, size);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 }
 
 void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
@@ -335,8 +324,6 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glUseProgram(program);
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
-
-    glm::mat4 model_matrix = glm::mat4(1.0f);
 
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();

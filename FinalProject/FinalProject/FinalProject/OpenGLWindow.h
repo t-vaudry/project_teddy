@@ -65,9 +65,10 @@ public:
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
+    static void DrawPoint(Shape* shape, GLuint* VBO); // DEBUG
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void RenderInstancedShape(Shape* shape, GLuint program);
-    static void DrawInstancedShape(Shape* shape, int size, GLuint* VAO, GLuint* VBO);
+    static void DrawInstancedShape(Shape* shape, int size, GLuint* VBO);
     static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
 
