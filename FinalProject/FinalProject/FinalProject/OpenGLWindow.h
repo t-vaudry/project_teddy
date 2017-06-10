@@ -24,7 +24,7 @@
 
 #define CONSTANT_ATTENUATION 1.0f
 #define LINEAR_ATTENUATION 0.25f
-#define QUADRATIC_ATTENUATION 0.0f
+#define QUADRATIC_ATTENUATION 0.01f
 
 typedef int GLRenderMode;
 
@@ -33,11 +33,11 @@ using namespace std;
 class OpenGLWindow
 {
 private:
-    static int mWidth;
-    static int mHeight;
     static Camera* mCamera;
     static vector<Shape*> mShapes;
 public:
+    static int mWidth;
+    static int mHeight;
     static GLRenderMode mRenderMode;
     static int mSelectedShapeIndex;
     static glm::vec3 mSunLight;

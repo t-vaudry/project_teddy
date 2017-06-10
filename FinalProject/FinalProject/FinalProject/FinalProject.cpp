@@ -104,8 +104,6 @@ int main()
     OpenGLWindow::SetUniformFactors(shaderProgram);
     OpenGLWindow::SetUniformFactors(textureShaderProgram);
 
-    OpenGLWindow::SetTexture(textureShaderProgram, 0, "textureSample");
-
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
@@ -121,6 +119,7 @@ int main()
         glBindVertexArray(OBJECT_VAO);
 
         // Render
+        OpenGLWindow::SetTexture(textureShaderProgram, 0, "textureSample");
         OpenGLWindow::RenderShape(&object, textureShaderProgram);
         OpenGLWindow::DrawShape(&object, &OBJECT_VBO);
 
