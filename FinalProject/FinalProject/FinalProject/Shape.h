@@ -90,7 +90,7 @@ struct Shape
         //Translate and scale the centre and radius according to the shape's translations
         mCenter *= mScale[0];
         mCenter += mTranslate;
-        mRadius *= mScale[0];
+        mRadius *= (mScale[0] + mScale[1] + mScale[2])/3.0f;
     }
 
     float IsSelected(glm::vec3& world_ray, glm::vec3& camera_position)

@@ -478,8 +478,11 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
     glm::vec3 xPos = centrePos + glm::vec3(objectMat[0] * mShapes[objectIndex]->mRadius);
     glm::vec3 zPos = centrePos + glm::vec3(objectMat[2] * mShapes[objectIndex]->mRadius);
 
+    glm::vec3 minusXPos = centrePos - glm::vec3(objectMat[0] * mShapes[objectIndex]->mRadius);
+    glm::vec3 minusZPos = centrePos - glm::vec3(objectMat[2] * mShapes[objectIndex]->mRadius);
+
     //Check if outside
-    if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1)
+    if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1 || GetCurrentRoom(minusXPos) == -1 || GetCurrentRoom(minusZPos) == -1)
     {
         return false;
     }
@@ -494,9 +497,11 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         float dCentre = glm::length(centrePos - centreOnPlane);
         float dx = glm::length(xPos - centreOnPlane);
         float dz = glm::length(zPos - centreOnPlane);
+        float dxMinus = glm::length(minusXPos - centreOnPlane);
+        float dzMinus = glm::length(minusZPos - centreOnPlane);
 
         //If the distance is less than the radius, we are inside, so return the contact point
-        if (dCentre < mShapes[i]->mRadius || dx < mShapes[i]->mRadius || dz < mShapes[i]->mRadius)
+        if (dCentre < mShapes[i]->mRadius || dx < mShapes[i]->mRadius || dz < mShapes[i]->mRadius || dxMinus < mShapes[i]->mRadius || dzMinus < mShapes[i]->mRadius)
         {
             return false;
         }
