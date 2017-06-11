@@ -369,14 +369,73 @@ glm::mat4 OpenGLWindow::GetProjectionMatrix()
     return glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
 }
 
-glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos)
+int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
 {
+    //Determine which room we are currently in
+    float room1Xmin = 24.75f;
+    float room1Xmax = 30.0f;
+    float room1Zmin = 25.25f;
+    float room1Zmax = 29.75f;
+
+    float room2Xmin = 30.75f;
+    float room2Xmax = 35.0f;
+    float room2Zmin = 25.75f;
+    float room2Zmax = 29.75f;
+
+    float room3Xmin = 24.75f;
+    float room3Xmax = 30.0f;
+    float room3Zmin = 30.25f;
+    float room3Zmax = 34.75f;
+
+    float door12Xmin = 29.99f;
+    float door12Xmax = 30.76f;
+    float door12Zmin = 27.25f;
+    float door12Zmax = 28.25f;
+
+    float door23Xmin = 26.50f;
+    float door23Xmax = 27.50f;
+    float door23Zmin = 29.74f;
+    float door23Zmax = 30.26;
+
+    int room = -1;
+    if (pos.x > room1Xmin && pos.x < room1Xmax && pos.z > room1Zmin && pos.z < room1Zmax)
+    {
+        room = 1;
+    }
+    else if (pos.x > room2Xmin && pos.x < room2Xmax && pos.z > room2Zmin && pos.z < room2Zmax)
+    {
+        room = 2;
+    }
+    else if (pos.x > room3Xmin && pos.x < room3Xmax && pos.z > room3Zmin && pos.z < room3Zmax)
+    {
+        room = 3;
+    }
+    else if (pos.x > door12Xmin && pos.x < door12Xmax && pos.z > door12Zmin && pos.z < door12Zmax)
+    {
+        room = 4;
+    }
+    else if (pos.x > door23Xmin && pos.x < door23Xmax && pos.z > door23Zmin && pos.z < door23Zmax)
+    {
+        room = 5;
+    }
+
+    return room;
+}
+
+glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex)
+{
+    //Determine the current room
+    cout << GetCurrentRoom(startPos) << endl;
     //Loop through all shapes in world
     //If within BV of shape, return contact point
     //Else, return desiredEndPoint
     glm::vec3 returnPos = desiredEndPos;
+    valid = true;
     for (unsigned int i = 0; i < mShapes.size(); i++)
     {
+        if (i == ignoreIndex)
+            continue;
+
         //Get distance from desiredEndPos to center of sphere
         glm::vec3 centreOnPlane = mShapes[i]->mCenter;
         float distanceToCentre = glm::length(desiredEndPos - centreOnPlane);
@@ -389,8 +448,15 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
             float d1 = -(glm::dot(l, startPos - centreOnPlane)) + sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
             float d2 = -(glm::dot(l, startPos - centreOnPlane)) - sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
             returnPos = glm::min(d1, d2) * l + startPos;
+            valid = false;
             break;
         }
+    }
+
+    if (GetCurrentRoom(returnPos) == -1)
+    {
+        valid = false;
+        returnPos = startPos;
     }
 
     return returnPos;
@@ -419,50 +485,78 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
     {
         glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && mSelectedShapeIndex != -1)
     {
         bool valid = true;
 
-        for (unsigned int i = 0; i < mShapes.size(); i++)
+        //Check collision of center piece and four corners
+        //Center
+        GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter, valid, mSelectedShapeIndex);
+
+        glm::mat4 objectMat;
+        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        //Check along x-axis
+        if (valid)
         {
-            if (i == mSelectedShapeIndex)
-                continue;
-
-            float center_distance = glm::distance(mShapes[i]->mCenter, mShapes[mSelectedShapeIndex]->mCenter);
-            float distance = center_distance - mShapes[i]->mRadius - mShapes[mSelectedShapeIndex]->mRadius;
-
-            if (distance < 0)
-            {
-                valid = false;
-                break;
-            }
+            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
         }
 
+        //If x-axis good, check y
+        if (valid)
+        {
+            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[1] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
+        }
+
+        //If x and y axes are good, check z
+        if (valid)
+        {
+            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[2] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
+        }
+
+        //If all points are valid, ensure that they are all in the same room (to prevent us going through a wall)
+        if (valid)
+        {
+            bool tst1 = GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius)) == GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[1] * mShapes[mSelectedShapeIndex]->mRadius));
+            bool tst2 = GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius)) == GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[2] * mShapes[mSelectedShapeIndex]->mRadius));
+            valid = tst1 && tst2;
+        }
+        //If central position and all axes are good, it is valid
         if (valid)
         {
             mShapes[mSelectedShapeIndex]->mAlpha = 1.0f;

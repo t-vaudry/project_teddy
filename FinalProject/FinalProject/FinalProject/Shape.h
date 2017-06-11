@@ -80,7 +80,8 @@ struct Shape
         mCenter.x = centerCoords[0];
         mCenter.y = centerCoords[1];
         mCenter.z = centerCoords[2];
-        mRadius = sqrt(2.0f/3.0f) * sqrt(glm::length(boundingSphere.squared_radius()));
+        //mRadius = sqrt(2.0f/3.0f) * sqrt(glm::length(boundingSphere.squared_radius()));
+        mRadius = sqrt(glm::length(boundingSphere.squared_radius())); //Seems to work better with more compelx shapes than sqrt(2/3)
 
         //Translate and scale the centre and radius according to the shape's translations
         mCenter *= mScale[0];
