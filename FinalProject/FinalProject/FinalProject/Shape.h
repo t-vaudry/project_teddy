@@ -14,6 +14,7 @@ struct Shape
         , mCenter(glm::vec3(0.0f))
         , mRadius(1.0f)
         , mAlpha(1.0f)
+        , mValidPos(true)
     {}
 
     // Vertex information
@@ -31,6 +32,9 @@ struct Shape
 
     // Transparency
     float mAlpha;
+
+    //Positioning
+    bool mValidPos;
 
     int GetVertexBufferSize()
     {

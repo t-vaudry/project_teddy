@@ -76,5 +76,6 @@ public:
 
     static int GetCurrentRoom(glm::vec3 pos);
     static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex = -1);
+    static bool GetIsValidObjectPosition(int objectIndex);
 };
 

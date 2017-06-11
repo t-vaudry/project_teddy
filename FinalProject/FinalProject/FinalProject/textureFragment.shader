@@ -17,6 +17,8 @@ uniform float constantFactor;
 uniform float linearFactor;
 uniform float quadraticFactor;
 
+uniform bool invalidPosition;
+
 void main()
 {
     // Sun light
@@ -27,5 +29,8 @@ void main()
 
     vec4 allLight = vec4(ambientLight + sunAttenuation * vec3(clamp(sun, 0, 1)), 1.0f);
 
-    color = allLight * vec4(texture(textureSample, vertexUV).rgb, alpha);
+    if (invalidPosition)
+        color = vec4(1.0f, 0.0f, 0.0f, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);
+    else
+        color = allLight * vec4(texture(textureSample, vertexUV).rgb, alpha);
 } 

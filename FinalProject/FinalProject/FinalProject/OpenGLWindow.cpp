@@ -274,6 +274,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
     GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+    GLuint invalidPosLoc = glGetUniformLocation(program, "invalidPosition");
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
@@ -296,6 +297,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
+    glUniform1i(invalidPosLoc, !shape->mValidPos);
 }
 
 void OpenGLWindow::DrawPoint(Shape* shape, GLuint* VBO)
@@ -462,6 +464,47 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
     return returnPos;
 }
 
+bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
+{
+    bool valid = true;
+
+    glm::vec3 centrePos = mShapes[objectIndex]->mCenter;
+
+    glm::mat4 objectMat;
+    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::vec3 xPos = centrePos + glm::vec3(objectMat[0] * mShapes[objectIndex]->mRadius);
+    glm::vec3 zPos = centrePos + glm::vec3(objectMat[2] * mShapes[objectIndex]->mRadius);
+
+    //Check if outside
+    if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1)
+    {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < mShapes.size(); i++)
+    {
+        if (i == objectIndex)
+            continue;
+
+        //Get distance from desiredEndPos to center of sphere
+        glm::vec3 centreOnPlane = mShapes[i]->mCenter;
+        float dCentre = glm::length(centrePos - centreOnPlane);
+        float dx = glm::length(xPos - centreOnPlane);
+        float dz = glm::length(zPos - centreOnPlane);
+
+        //If the distance is less than the radius, we are inside, so return the contact point
+        if (dCentre < mShapes[i]->mRadius || dx < mShapes[i]->mRadius || dz < mShapes[i]->mRadius)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
     mCamera->SetLookAt(glm::vec2(x, y));
@@ -522,40 +565,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     {
         bool valid = true;
 
-        //Check collision of center piece and four corners
-        //Center
-        GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter, valid, mSelectedShapeIndex);
-
-        glm::mat4 objectMat;
-        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-        //Check along x-axis
-        if (valid)
-        {
-            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
-        }
-
-        //If x-axis good, check y
-        if (valid)
-        {
-            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[1] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
-        }
-
-        //If x and y axes are good, check z
-        if (valid)
-        {
-            GetNoCollisionPosition(mShapes[mSelectedShapeIndex]->mCenter, mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[2] * mShapes[mSelectedShapeIndex]->mRadius), valid, mSelectedShapeIndex);
-        }
-
-        //If all points are valid, ensure that they are all in the same room (to prevent us going through a wall)
-        if (valid)
-        {
-            bool tst1 = GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius)) == GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[1] * mShapes[mSelectedShapeIndex]->mRadius));
-            bool tst2 = GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[0] * mShapes[mSelectedShapeIndex]->mRadius)) == GetCurrentRoom(mShapes[mSelectedShapeIndex]->mCenter + glm::vec3(objectMat[2] * mShapes[mSelectedShapeIndex]->mRadius));
-            valid = tst1 && tst2;
-        }
+        valid = GetIsValidObjectPosition(mSelectedShapeIndex);
+        
         //If central position and all axes are good, it is valid
         if (valid)
         {
@@ -571,6 +582,15 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
         mShapes[mSelectedShapeIndex]->mTranslate += translate;
         mShapes[mSelectedShapeIndex]->mCenter += translate;
+
+        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = false;
+        }
+        else
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
     }
 
     if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
@@ -578,6 +598,15 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
         mShapes[mSelectedShapeIndex]->mTranslate += translate;
         mShapes[mSelectedShapeIndex]->mCenter += translate;
+
+        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = false;
+        }
+        else
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
     }
 
     if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
@@ -591,6 +620,15 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
             mShapes[mSelectedShapeIndex]->mTranslate += translate;
             mShapes[mSelectedShapeIndex]->mCenter += translate;
+
+            if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+            {
+                mShapes[mSelectedShapeIndex]->mValidPos = false;
+            }
+            else
+            {
+                mShapes[mSelectedShapeIndex]->mValidPos = true;
+            }
         }
     }
 
@@ -605,6 +643,15 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
             mShapes[mSelectedShapeIndex]->mTranslate += translate;
             mShapes[mSelectedShapeIndex]->mCenter += translate;
+
+            if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+            {
+                mShapes[mSelectedShapeIndex]->mValidPos = false;
+            }
+            else
+            {
+                mShapes[mSelectedShapeIndex]->mValidPos = true;
+            }
         }
     }
 }
