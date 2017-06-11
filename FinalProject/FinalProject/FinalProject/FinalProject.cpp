@@ -85,7 +85,8 @@ int main()
     OpenGLWindow::SetPointSize(15.0f);
     OpenGLWindow::SetCamera(&mCamera);
 
-    Shape object = ShapeGenerator::GenerateOBJ("table.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.25f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(28.0f, -1.0f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("Sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.75f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(22.0f, 0.25f, 27.0f));
+    Shape object = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
     Shape floor = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), -1.0f, false);
     Shape ceiling = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), 1.0f, true);
 
@@ -140,7 +141,7 @@ int main()
     glBindVertexArray(OBJECT_VAO);
 
     OpenGLWindow::BindBuffers(&object, &OBJECT_VBO);
-    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "BedsideTable.png");
+    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "Sofa.jpg");
     OpenGLWindow::AddShape(&object);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -194,9 +195,9 @@ int main()
     glBindVertexArray(WALL_VAO);
 
     vector<glm::mat4> wall_model = ShapeGenerator::GenerateWallModelMatrices();
-   OpenGLWindow::BindBuffers(&wall, &WALL_VBO);
-   OpenGLWindow::BindModelBuffers(wall_model, &WALL_MODEL_MATRIX);
-   OpenGLWindow::BindTexture(&WALL_TEXTURE, "wallpaper.jpg");
+    OpenGLWindow::BindBuffers(&wall, &WALL_VBO);
+    OpenGLWindow::BindModelBuffers(wall_model, &WALL_MODEL_MATRIX);
+    OpenGLWindow::BindTexture(&WALL_TEXTURE, "wallpaper.jpg");
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

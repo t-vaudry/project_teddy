@@ -40,7 +40,7 @@ GLenum OpenGLWindow::InitializeGLEW()
 GLFWwindow* OpenGLWindow::CreateWindow()
 {
     // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Assignment 1", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", nullptr, nullptr);
     if (window == nullptr)
     {
         cerr << "Failed to create GLFW window" << endl;

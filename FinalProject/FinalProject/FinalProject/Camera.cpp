@@ -10,7 +10,7 @@
 #define MOVEMENT_SPEED 0.1f
 
 Camera::Camera()
-    : mPosition(28.0f, 0.0f, 28.0f)
+    : mPosition(28.0f, -0.25f, 28.0f)
     , mDirection(0.0f, 0.0f, -1.0f)
     , mUp(0.0f, 1.0f, 0.0f)
 {
