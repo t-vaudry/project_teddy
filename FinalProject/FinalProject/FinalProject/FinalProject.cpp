@@ -92,6 +92,8 @@ int main()
 
     ShapeGenerator::SetWallDimensions(1.0f, 2.0f, 0.25f);
     Shape wall = ShapeGenerator::GenerateWall();
+    Shape topWindow = ShapeGenerator::GenerateWindow();
+    Shape bottomWindow = ShapeGenerator::GenerateWindow();
 
     //Skybox
     Shape skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
@@ -104,6 +106,8 @@ int main()
     GLuint CEILING_VAO, CEILING_VBO, CEILING_MODEL_MATRIX, CEILING_TEXTURE;
     GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
     GLuint WALL_VAO, WALL_VBO, WALL_MODEL_MATRIX, WALL_TEXTURE;
+    GLuint TOPWINDOW_VAO, TOPWINDOW_VBO, TOPWINDOW_MODEL_MATRIX, TOPWINDOW_TEXTURE;
+    GLuint BOTTOMWINDOW_VAO, BOTTOMWINDOW_VBO, BOTTOMWINDOW_MODEL_MATRIX, BOTTOMWINDOW_TEXTURE;
 
     // DEBUG
     GLuint POINT_VAO, POINT_VBO;
@@ -202,6 +206,36 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //----Wall (top of window)
+    glGenVertexArrays(1, &TOPWINDOW_VAO);
+    glGenBuffers(1, &TOPWINDOW_VBO);
+    glGenBuffers(1, &TOPWINDOW_MODEL_MATRIX);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(TOPWINDOW_VAO);
+
+    vector<glm::mat4> topwindow_model = ShapeGenerator::GetTopWindowMatrices();
+    OpenGLWindow::BindBuffers(&topWindow, &TOPWINDOW_VBO);
+    OpenGLWindow::BindModelBuffers(topwindow_model, &TOPWINDOW_MODEL_MATRIX);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Wall (bottom of window)
+    glGenVertexArrays(1, &BOTTOMWINDOW_VAO);
+    glGenBuffers(1, &BOTTOMWINDOW_VBO);
+    glGenBuffers(1, &BOTTOMWINDOW_MODEL_MATRIX);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(BOTTOMWINDOW_VAO);
+
+    vector<glm::mat4> bottomwindow_model = ShapeGenerator::GetBottomWindowMatrices();
+    OpenGLWindow::BindBuffers(&bottomWindow, &BOTTOMWINDOW_VBO);
+    OpenGLWindow::BindModelBuffers(bottomwindow_model, &BOTTOMWINDOW_MODEL_MATRIX);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     //----End
 
     // Enable blending
@@ -264,6 +298,19 @@ int main()
         OpenGLWindow::RenderInstancedShape(&wall, instancedShaderProgram);
         OpenGLWindow::SetTexture(instancedShaderProgram, 4, "textureSample");
         OpenGLWindow::DrawInstancedShape(&wall, wall_model.size(), &WALL_VBO);
+        glBindVertexArray(0);
+
+        //WINDOWS
+        glBindVertexArray(TOPWINDOW_VAO);
+        OpenGLWindow::RenderInstancedShape(&topWindow, instancedShaderProgram);
+        OpenGLWindow::SetTexture(instancedShaderProgram, 4, "textureSample");
+        OpenGLWindow::DrawInstancedShape(&topWindow, topwindow_model.size(), &TOPWINDOW_VBO);
+        glBindVertexArray(0);
+
+        glBindVertexArray(BOTTOMWINDOW_VAO);
+        OpenGLWindow::RenderInstancedShape(&bottomWindow, instancedShaderProgram);
+        OpenGLWindow::SetTexture(instancedShaderProgram, 4, "textureSample");
+        OpenGLWindow::DrawInstancedShape(&bottomWindow, bottomwindow_model.size(), &BOTTOMWINDOW_VBO);
         glBindVertexArray(0);
 
         //Swap the screen buffers

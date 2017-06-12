@@ -6,6 +6,8 @@
 float ShapeGenerator::mWallWidth = 1.0f;
 float ShapeGenerator::mWallHeight = 1.0f;
 float ShapeGenerator::mWallDepth = 1.0f;
+vector<glm::mat4> ShapeGenerator::mTopWindowMatrices;
+vector<glm::mat4> ShapeGenerator::mBottomWindowMatrices;
 
 Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
 {
@@ -209,6 +211,11 @@ Shape ShapeGenerator::GenerateWall()
     return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight, mWallDepth);
 }
 
+Shape ShapeGenerator::GenerateWindow()
+{
+    return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight/3.0f, mWallDepth);
+}
+
 Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 color)
 {
     Shape line;
@@ -356,6 +363,12 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
     //S6
     for (int i = 0; i < sideWallLength; i++)
     {
+        if (i == sideWallLength / 4 || i == sideWallLength / 4 + 1)
+        {
+            mTopWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, mWallHeight / 2.0f, -(backWallLength + 1))));
+            mBottomWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, -mWallHeight / 2.0f, -(backWallLength + 1))));
+            continue;
+        }
         model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, -(backWallLength + 1))));
     }
 
@@ -372,6 +385,14 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
     //S5
     for (int i = 0; i < backWallLength/2 + 1; i++)
     {
+        //Window
+        if (i == backWallLength / 4 || i == backWallLength / 4 + 1)
+        {
+            mTopWindowMatrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, mWallHeight / 2.0f, mWallWidth * sideWallLength)));
+            mBottomWindowMatrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, -mWallHeight / 2.0f, mWallWidth * sideWallLength)));
+            continue;
+        }
+
         model_matrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, 0.0f, mWallWidth * sideWallLength)));
     }
 
@@ -388,6 +409,12 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
     //S2
     for (int i = 0; i < sideWallLength/2 + 1; i++)
     {
+        if (i == sideWallLength / 4 - 1 || i == sideWallLength / 4 || i == sideWallLength / 4 + 1)
+        {
+            mTopWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, mWallHeight/2.0f, 0.0f)));
+            mBottomWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, -mWallHeight / 2.0f, 0.0f)));
+            continue;
+        }
         model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, 0.0f)));
     }
 
@@ -413,4 +440,15 @@ vector<glm::mat4> ShapeGenerator::GeneratePlaneModelMatrices(Shape* shape)
     }
 
     return modelMatrices;
+}
+
+vector<glm::mat4> ShapeGenerator::GetTopWindowMatrices()
+{
+    return mTopWindowMatrices;
+}
+
+
+vector<glm::mat4> ShapeGenerator::GetBottomWindowMatrices()
+{
+    return mBottomWindowMatrices;
 }
