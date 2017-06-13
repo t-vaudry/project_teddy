@@ -86,7 +86,9 @@ int main()
     OpenGLWindow::SetCamera(&mCamera);
 
     //Shape object = ShapeGenerator::GenerateOBJ("Sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.75f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(22.0f, 0.25f, 27.0f));
-    Shape object = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    Shape object = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
     Shape floor = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), -1.0f, false);
     Shape ceiling = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), 1.0f, true);
 
@@ -145,7 +147,7 @@ int main()
     glBindVertexArray(OBJECT_VAO);
 
     OpenGLWindow::BindBuffers(&object, &OBJECT_VBO);
-    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "Sofa.jpg");
+    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "kitchen_table.jpg");
     OpenGLWindow::AddShape(&object);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);

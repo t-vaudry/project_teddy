@@ -35,6 +35,7 @@ class OpenGLWindow
 private:
     static Camera* mCamera;
     static vector<Shape*> mShapes;
+    static bool mOrient;
 public:
     static int mWidth;
     static int mHeight;

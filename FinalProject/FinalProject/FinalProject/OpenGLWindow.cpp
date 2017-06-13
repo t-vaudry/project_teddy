@@ -6,6 +6,7 @@ GLRenderMode OpenGLWindow::mRenderMode = GL_TRIANGLES;
 int OpenGLWindow::mWidth;
 int OpenGLWindow::mHeight;
 Camera* OpenGLWindow::mCamera;
+bool OpenGLWindow::mOrient = false;
 vector<Shape*> OpenGLWindow::mShapes;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
@@ -427,7 +428,7 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
 glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex)
 {
     //Determine the current room
-    cout << GetCurrentRoom(startPos) << endl;
+    //cout << GetCurrentRoom(startPos) << endl;
     //Loop through all shapes in world
     //If within BV of shape, return contact point
     //Else, return desiredEndPoint
@@ -470,16 +471,11 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
 
     glm::vec3 centrePos = mShapes[objectIndex]->mCenter;
 
-    glm::mat4 objectMat;
-    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    objectMat = glm::rotate(objectMat, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::vec3 xPos = centrePos + glm::vec3(mShapes[objectIndex]->mRadius, 0.0f, 0.0f);
+    glm::vec3 zPos = centrePos + glm::vec3(0.0f, 0.0f, mShapes[objectIndex]->mRadius);
 
-    glm::vec3 xPos = centrePos + glm::vec3(objectMat[0] * mShapes[objectIndex]->mRadius);
-    glm::vec3 zPos = centrePos + glm::vec3(objectMat[2] * mShapes[objectIndex]->mRadius);
-
-    glm::vec3 minusXPos = centrePos - glm::vec3(objectMat[0] * mShapes[objectIndex]->mRadius);
-    glm::vec3 minusZPos = centrePos - glm::vec3(objectMat[2] * mShapes[objectIndex]->mRadius);
+    glm::vec3 minusXPos = centrePos - glm::vec3(mShapes[objectIndex]->mRadius, 0.0f, 0.0f);
+    glm::vec3 minusZPos = centrePos - glm::vec3(0.0f, 0.0f, mShapes[objectIndex]->mRadius);
 
     //Check if outside
     if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1 || GetCurrentRoom(minusXPos) == -1 || GetCurrentRoom(minusZPos) == -1)
@@ -512,7 +508,8 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
 
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
-    mCamera->SetLookAt(glm::vec2(x, y));
+    if (mOrient)
+        mCamera->SetLookAt(glm::vec2(x, y));
 }
 
 void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -536,7 +533,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -545,7 +542,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -554,7 +551,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -563,7 +560,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && mSelectedShapeIndex != -1)
@@ -584,9 +581,9 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
     if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
     {
-        glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
-        mShapes[mSelectedShapeIndex]->mTranslate += translate;
-        mShapes[mSelectedShapeIndex]->mCenter += translate;
+        glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+        mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+        mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
 
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
@@ -600,9 +597,9 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
     if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
     {
-        glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
-        mShapes[mSelectedShapeIndex]->mTranslate += translate;
-        mShapes[mSelectedShapeIndex]->mCenter += translate;
+        glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+        mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+        mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
 
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
@@ -622,9 +619,9 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         }
         else
         {
-            glm::vec3 translate = glm::normalize(-SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
-            mShapes[mSelectedShapeIndex]->mTranslate += translate;
-            mShapes[mSelectedShapeIndex]->mCenter += translate;
+            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
 
             if (!GetIsValidObjectPosition(mSelectedShapeIndex))
             {
@@ -645,9 +642,9 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         }
         else
         {
-            glm::vec3 translate = glm::normalize(SHAPE_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
-            mShapes[mSelectedShapeIndex]->mTranslate += translate;
-            mShapes[mSelectedShapeIndex]->mCenter += translate;
+            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
 
             if (!GetIsValidObjectPosition(mSelectedShapeIndex))
             {
@@ -700,4 +697,6 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
             mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
         }
     }
+
+    mOrient = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
 }
