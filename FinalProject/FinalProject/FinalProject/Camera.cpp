@@ -114,11 +114,6 @@ void Camera::Move(DIRECTION direction)
 void Camera::SetLookAt(const glm::vec2& newMousePosition)
 {
     glm::vec2 delta = newMousePosition - mMousePosition;
-    if (glm::length(delta) > 50.0f)
-    {
-        mMousePosition = newMousePosition;
-        return;
-    }
 
     glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
     mDirection = glm::normalize(glm::mat3(rotation) * mDirection);

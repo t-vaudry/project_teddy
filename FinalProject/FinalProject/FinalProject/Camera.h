@@ -48,6 +48,8 @@ public:
     inline glm::vec3 GetDirection() { return mDirection; }
     inline glm::vec3 GetRight() { return mRight; }
 
+    inline void SetMousePosition(const glm::vec2 mousePosition) { mMousePosition = mousePosition; }
+
     glm::mat4 GetViewMatrix() const;
 };
 

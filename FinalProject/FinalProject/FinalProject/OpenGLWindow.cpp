@@ -699,4 +699,10 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
     }
 
     mOrient = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
+    if (mOrient)
+    {
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
+        mCamera->SetMousePosition(glm::vec2(x, y));
+    }
 }
