@@ -11,6 +11,7 @@
 #include "Camera.h"
 #include "Shape.h"
 #include "ShapeGenerator.h"
+#include "Particle.h"
 
 #define CHECK_NULL(a) if (!a) return -1;
 #define CHECK_STRING(a) if (a.empty()) return -1;
@@ -21,9 +22,22 @@ using namespace std;
 
 Camera mCamera;
 
+int GetUnusedParticleIndex(vector<Particle>& particles)
+{
+    for (int i = 0; i < NUM_OF_PARTICLES; i++)
+    {
+        if (particles[i].mLife <= 0.0f)
+            return i;
+    }
+
+    // Override random if all others are alive
+    return (rand() % NUM_OF_PARTICLES);
+}
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
+    srand(time(NULL));
     OpenGLWindow::InitializeGLFW();
 
     GLFWwindow* window = OpenGLWindow::CreateWindow();
@@ -51,6 +65,11 @@ int main()
     GLuint vertexShaderInstanced = OpenGLWindow::CompileShader(vertexShaderCodeInstanced, GL_VERTEX_SHADER);
     CHECK_ERROR(vertexShaderInstanced);
 
+    string vertexShaderCodeParticle = OpenGLWindow::CodeShader("particleVertex.shader");
+    CHECK_STRING(vertexShaderCodeParticle);
+    GLuint vertexShaderParticle = OpenGLWindow::CompileShader(vertexShaderCodeParticle, GL_VERTEX_SHADER);
+    CHECK_ERROR(vertexShaderParticle);
+
     // Fragment shader
     string fragmentShaderCode = OpenGLWindow::CodeShader("fragment.shader");
     CHECK_STRING(fragmentShaderCode);
@@ -68,6 +87,11 @@ int main()
     GLuint textureFragmentShader = OpenGLWindow::CompileShader(textureFragmentShaderCode, GL_FRAGMENT_SHADER);
     CHECK_ERROR(textureFragmentShader);
 
+    string particleFragmentShaderCode = OpenGLWindow::CodeShader("particleFragment.shader");
+    CHECK_STRING(particleFragmentShaderCode);
+    GLuint particleFragmentShader = OpenGLWindow::CompileShader(particleFragmentShaderCode, GL_FRAGMENT_SHADER);
+    CHECK_ERROR(particleFragmentShader);
+
     // Link shaders
     GLuint shaderProgram = OpenGLWindow::AttachShaders(vertexShader, fragmentShader);
     CHECK_ERROR(shaderProgram);
@@ -82,13 +106,22 @@ int main()
     GLuint instancedShaderProgram = OpenGLWindow::AttachShaders(vertexShaderInstanced, textureFragmentShader);
     CHECK_ERROR(instancedShaderProgram);
 
-    OpenGLWindow::SetPointSize(15.0f);
+    GLuint particleShaderProgram = OpenGLWindow::AttachShaders(vertexShaderParticle, particleFragmentShader);
+    CHECK_ERROR(particleShaderProgram);
+
+    OpenGLWindow::SetPointSize(5.0f);
     OpenGLWindow::SetCamera(&mCamera);
 
     //Shape object = ShapeGenerator::GenerateOBJ("Sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.75f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(22.0f, 0.25f, 27.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
-    Shape object = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    Shape object2 = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("bed.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -1.0f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
+    Shape object = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(26.0f, 0.0f, 26.0f));
+
     Shape floor = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), -1.0f, false);
     Shape ceiling = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), 1.0f, true);
 
@@ -100,19 +133,24 @@ int main()
     //Skybox
     Shape skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
 
+    vector<Particle> particles;
+    for (int i = 0; i < NUM_OF_PARTICLES; i++)
+        particles.push_back(Particle());
+
     vector<glm::mat4> floorModelMatrices = ShapeGenerator::GeneratePlaneModelMatrices(&floor);
     vector<glm::mat4> ceilingModelMatrices = ShapeGenerator::GeneratePlaneModelMatrices(&ceiling);
 
     GLuint OBJECT_VAO, OBJECT_VBO, OBJ_TEXTURE;
+    GLuint OBJECT2_VAO, OBJECT2_VBO, OBJ2_TEXTURE;
     GLuint FLOOR_VAO, FLOOR_VBO, FLOOR_MODEL_MATRIX, FLOOR_TEXTURE;
     GLuint CEILING_VAO, CEILING_VBO, CEILING_MODEL_MATRIX, CEILING_TEXTURE;
     GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
     GLuint WALL_VAO, WALL_VBO, WALL_MODEL_MATRIX, WALL_TEXTURE;
-    GLuint TOPWINDOW_VAO, TOPWINDOW_VBO, TOPWINDOW_MODEL_MATRIX, TOPWINDOW_TEXTURE;
-    GLuint BOTTOMWINDOW_VAO, BOTTOMWINDOW_VBO, BOTTOMWINDOW_MODEL_MATRIX, BOTTOMWINDOW_TEXTURE;
+    GLuint TOPWINDOW_VAO, TOPWINDOW_VBO, TOPWINDOW_MODEL_MATRIX;
+    GLuint BOTTOMWINDOW_VAO, BOTTOMWINDOW_VBO, BOTTOMWINDOW_MODEL_MATRIX;
 
-    // DEBUG
-    GLuint POINT_VAO, POINT_VBO;
+    // PARTICLES
+    GLuint PARTICLE_VAO, PARTICLE_VBO, PARTICLE_TEXTURE;
 
     //----Skybox
     glGenVertexArrays(1, &SKYBOX_VAO);
@@ -147,8 +185,25 @@ int main()
     glBindVertexArray(OBJECT_VAO);
 
     OpenGLWindow::BindBuffers(&object, &OBJECT_VBO);
-    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "kitchen_table.jpg");
+    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "light_wood.jpg");
     OpenGLWindow::AddShape(&object);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Object
+    glGenVertexArrays(1, &OBJECT2_VAO);
+    glGenBuffers(1, &OBJECT2_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &OBJ2_TEXTURE);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(OBJECT2_VAO);
+
+    OpenGLWindow::BindBuffers(&object2, &OBJECT2_VBO);
+    OpenGLWindow::BindTexture(&OBJ2_TEXTURE, "leather.jpg");
+    OpenGLWindow::AddShape(&object2);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -238,6 +293,20 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    glActiveTexture(GL_TEXTURE5);
+    glGenVertexArrays(1, &PARTICLE_VAO);
+    glGenBuffers(1, &PARTICLE_VBO);
+    glGenTextures(1, &PARTICLE_TEXTURE);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(PARTICLE_VAO);
+
+    OpenGLWindow::BindParticleBuffers(particles, &PARTICLE_VBO);
+    OpenGLWindow::BindTexture(&PARTICLE_TEXTURE, "fire.jpg");
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     //----End
 
     // Enable blending
@@ -281,6 +350,13 @@ int main()
         OpenGLWindow::DrawShape(&object, &OBJECT_VBO);
         glBindVertexArray(0);
 
+        //OBJECT
+        glBindVertexArray(OBJECT2_VAO);
+        OpenGLWindow::RenderShape(&object2, textureShaderProgram);
+        OpenGLWindow::SetTexture(textureShaderProgram, 6, "textureSample");
+        OpenGLWindow::DrawShape(&object2, &OBJECT2_VBO);
+        glBindVertexArray(0);
+
         //FLOOR
         glBindVertexArray(FLOOR_VAO);
         OpenGLWindow::RenderInstancedShape(&floor, instancedShaderProgram);
@@ -314,6 +390,30 @@ int main()
         OpenGLWindow::SetTexture(instancedShaderProgram, 4, "textureSample");
         OpenGLWindow::DrawInstancedShape(&bottomWindow, bottomwindow_model.size(), &BOTTOMWINDOW_VBO);
         glBindVertexArray(0);
+
+        for (int i = 0; i < SPAWN_PARTICLES; i++)
+        {
+            int index = GetUnusedParticleIndex(particles);
+            particles[index].RespawnParticle();
+        }
+
+        for (int i = 0; i < NUM_OF_PARTICLES; i++)
+        {
+            Particle& p = particles[i];
+            p.mLife -= DECAY_FACTOR;
+
+            if (p.mLife > 0.0f)
+            {
+                p.mInfo.mPosition -= p.mVelocity * DECAY_FACTOR;
+                p.mInfo.mAlpha -= DECAY_FACTOR;
+            }
+        }
+
+        glBindVertexArray(PARTICLE_VAO);
+        OpenGLWindow::BindParticleBuffers(particles, &PARTICLE_VBO);
+        OpenGLWindow::RenderParticles(particleShaderProgram);
+        OpenGLWindow::SetTexture(particleShaderProgram, 5, "tex");
+        OpenGLWindow::DrawParticles(particles, &PARTICLE_VBO);
 
         //Swap the screen buffers
         glfwSwapBuffers(window);

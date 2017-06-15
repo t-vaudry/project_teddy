@@ -252,11 +252,15 @@ Shape ShapeGenerator::GenerateOBJ(const char* path, glm::vec3 color, glm::vec3 s
     obj.mTranslate = translate;
 
     obj.InitializeBoundingSphere();
+    obj.InitializeBoundingBox();
 
     //DEBUG:
     std::cout << "obj: " << endl;
     std::cout << obj.mCenter[0] << ", " << obj.mCenter[1] << ", " << obj.mCenter[2] << endl;
     std::cout << obj.mRadius << endl;
+    std::cout << obj.mBox.mMax[0] << ", " << obj.mBox.mMin[0] << endl;
+    std::cout << obj.mBox.mMax[1] << ", " << obj.mBox.mMin[1] << endl;
+    std::cout << obj.mBox.mMax[2] << ", " << obj.mBox.mMin[2] << endl;
 
     return obj;
 }

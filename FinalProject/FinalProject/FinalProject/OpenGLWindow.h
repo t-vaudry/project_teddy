@@ -13,13 +13,14 @@
 #include "Camera.h"
 #include "Shape.h"
 #include "ShapeGenerator.h"
+#include "Particle.h"
 
 #define WIDTH 2000
 #define HEIGHT 2000
 #define NEAR_PLANE 0.01f
 #define FAR_PLANE 1000.0f
-#define CAMERA_MOVEMENT_SPEED 0.1f
-#define SHAPE_MOVEMENT_SPEED 0.1f
+#define CAMERA_MOVEMENT_SPEED 0.05f
+#define SHAPE_MOVEMENT_SPEED 0.01f
 #define ROTATION_SPEED 1.0f
 
 #define CONSTANT_ATTENUATION 1.75f
@@ -36,6 +37,7 @@ private:
     static Camera* mCamera;
     static vector<Shape*> mShapes;
     static bool mOrient;
+    static bool mDebug;
 public:
     static int mWidth;
     static int mHeight;
@@ -72,6 +74,10 @@ public:
     static void DrawInstancedShape(Shape* shape, int size, GLuint* VBO);
     static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
+
+    static void BindParticleBuffers(vector<Particle>& particles, GLuint* VBO);
+    static void RenderParticles(GLuint program);
+    static void DrawParticles(vector<Particle>& particles, GLuint* VBO);
 
     static glm::mat4 GetProjectionMatrix();
 

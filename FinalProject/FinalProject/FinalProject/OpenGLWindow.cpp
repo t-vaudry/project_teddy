@@ -8,6 +8,7 @@ int OpenGLWindow::mHeight;
 Camera* OpenGLWindow::mCamera;
 bool OpenGLWindow::mOrient = false;
 vector<Shape*> OpenGLWindow::mShapes;
+bool OpenGLWindow::mDebug = false;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
 glm::vec3 OpenGLWindow::mSunLight = glm::vec3(28.0f, 0.0f, 28.0f);
@@ -231,6 +232,24 @@ void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
     glEnableVertexAttribArray(7);
 }
 
+void OpenGLWindow::BindParticleBuffers(vector<Particle>& particles, GLuint* VBO)
+{
+    vector<ParticleInfo> info;
+    for (unsigned int i = 0; i < particles.size(); i++)
+        info.push_back(particles[i].mInfo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glBufferData(GL_ARRAY_BUFFER, info.size() * sizeof(ParticleInfo), &info[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 8));
+    glEnableVertexAttribArray(3);
+}
 
 void OpenGLWindow::SetUniformFactors(GLuint program)
 {
@@ -289,7 +308,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     view_matrix = mCamera->GetViewMatrix();
 
     glm::mat4 projection_matrix;
-    projection_matrix = glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
+    projection_matrix = GetProjectionMatrix();
 
     glm::mat4 mvp_matrix;
     mvp_matrix = projection_matrix * view_matrix * model_matrix;
@@ -299,6 +318,44 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform1i(invalidPosLoc, !shape->mValidPos);
+}
+
+void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
+{
+    glUseProgram(program);
+    GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
+    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+
+    glm::mat4 view_matrix;
+    view_matrix = mCamera->GetViewMatrix();
+
+    glm::mat4 projection_matrix;
+    projection_matrix = GetProjectionMatrix();
+
+    glm::mat4 vp_matrix;
+    vp_matrix = projection_matrix * view_matrix;
+
+    //broadcast the uniform value to the shaders
+    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
+    glUniform1f(alphaLoc, shape->mAlpha);
+}
+
+void OpenGLWindow::RenderParticles(GLuint program)
+{
+    glUseProgram(program);
+    GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
+
+    glm::mat4 view_matrix;
+    view_matrix = mCamera->GetViewMatrix();
+
+    glm::mat4 projection_matrix;
+    projection_matrix = GetProjectionMatrix();
+
+    glm::mat4 vp_matrix;
+    vp_matrix = projection_matrix * view_matrix;
+
+    //broadcast the uniform value to the shaders
+    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
 }
 
 void OpenGLWindow::DrawPoint(Shape* shape, GLuint* VBO)
@@ -322,32 +379,11 @@ void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
-{
-    glUseProgram(program);
-    GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
-    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
-
-    glm::mat4 view_matrix;
-    view_matrix = mCamera->GetViewMatrix();
-
-    glm::mat4 projection_matrix;
-    projection_matrix = glm::perspective(45.0f, GetAspectRatio(), NEAR_PLANE, FAR_PLANE);
-
-    glm::mat4 vp_matrix;
-    vp_matrix = projection_matrix * view_matrix;
-
-    //broadcast the uniform value to the shaders
-    glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
-    glUniform1f(alphaLoc, shape->mAlpha);
-}
-
 void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
-    glPointSize(10.0f);
     glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -362,8 +398,14 @@ void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
-    glPointSize(5.0f);
     glDrawArrays(GL_LINE_STRIP, 0, shape->mNumberOfVertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void OpenGLWindow::DrawParticles(vector<Particle>& particles, GLuint* VBO)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, *VBO);
+    glDrawArrays(GL_POINTS, 0, particles.size());
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -398,7 +440,7 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
     float door23Xmin = 26.50f;
     float door23Xmax = 27.50f;
     float door23Zmin = 29.74f;
-    float door23Zmax = 30.26;
+    float door23Zmax = 30.26f;
 
     int room = -1;
     if (pos.x > room1Xmin && pos.x < room1Xmax && pos.z > room1Zmin && pos.z < room1Zmax)
@@ -439,20 +481,10 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
         if (i == ignoreIndex)
             continue;
 
-        //Get distance from desiredEndPos to center of sphere
-        glm::vec3 centreOnPlane = mShapes[i]->mCenter;
-        float distanceToCentre = glm::length(desiredEndPos - centreOnPlane);
-
-        //If the distance is less than the radius, we are inside, so return the contact point
-        if (distanceToCentre < mShapes[i]->mRadius)
+        BoundingBox camera = BoundingBox(desiredEndPos, desiredEndPos);
+        if (camera.Intersect(mShapes[i]->mBox))
         {
-            glm::vec3 l = glm::normalize(desiredEndPos - startPos);
-
-            float d1 = -(glm::dot(l, startPos - centreOnPlane)) + sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
-            float d2 = -(glm::dot(l, startPos - centreOnPlane)) - sqrt(pow(glm::dot(l, startPos - centreOnPlane), 2.0f) - pow(glm::length(startPos - centreOnPlane), 2.0f) + pow(mShapes[i]->mRadius, 2.0f));
-            returnPos = glm::min(d1, d2) * l + startPos;
-            valid = false;
-            break;
+            returnPos = startPos;
         }
     }
 
@@ -471,11 +503,11 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
 
     glm::vec3 centrePos = mShapes[objectIndex]->mCenter;
 
-    glm::vec3 xPos = centrePos + glm::vec3(mShapes[objectIndex]->mRadius, 0.0f, 0.0f);
-    glm::vec3 zPos = centrePos + glm::vec3(0.0f, 0.0f, mShapes[objectIndex]->mRadius);
+    glm::vec3 xPos = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
+    glm::vec3 zPos = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
 
-    glm::vec3 minusXPos = centrePos - glm::vec3(mShapes[objectIndex]->mRadius, 0.0f, 0.0f);
-    glm::vec3 minusZPos = centrePos - glm::vec3(0.0f, 0.0f, mShapes[objectIndex]->mRadius);
+    glm::vec3 minusXPos = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
+    glm::vec3 minusZPos = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
 
     //Check if outside
     if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1 || GetCurrentRoom(minusXPos) == -1 || GetCurrentRoom(minusZPos) == -1)
@@ -488,16 +520,8 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         if (i == objectIndex)
             continue;
 
-        //Get distance from desiredEndPos to center of sphere
-        glm::vec3 centreOnPlane = mShapes[i]->mCenter;
-        float dCentre = glm::length(centrePos - centreOnPlane);
-        float dx = glm::length(xPos - centreOnPlane);
-        float dz = glm::length(zPos - centreOnPlane);
-        float dxMinus = glm::length(minusXPos - centreOnPlane);
-        float dzMinus = glm::length(minusZPos - centreOnPlane);
-
         //If the distance is less than the radius, we are inside, so return the contact point
-        if (dCentre < mShapes[i]->mRadius || dx < mShapes[i]->mRadius || dz < mShapes[i]->mRadius || dxMinus < mShapes[i]->mRadius || dzMinus < mShapes[i]->mRadius)
+        if (mShapes[objectIndex]->mBox.Intersect(mShapes[i]->mBox))
         {
             return false;
         }
@@ -516,6 +540,10 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 {
     //DEBUG
     if (key == GLFW_KEY_Q && action == GLFW_PRESS)
+        mDebug = !mDebug;
+
+
+    if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
         if (mRenderMode == GL_TRIANGLES)
             mRenderMode = GL_LINE_STRIP;
@@ -584,6 +612,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
         mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
         mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+        mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+        mShapes[mSelectedShapeIndex]->mBox.Set();
 
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
@@ -592,6 +622,12 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         else
         {
             mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
+
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 
@@ -600,6 +636,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
         mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
         mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+        mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+        mShapes[mSelectedShapeIndex]->mBox.Set();
 
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
@@ -609,6 +647,12 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         {
             mShapes[mSelectedShapeIndex]->mValidPos = true;
         }
+
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+        }
     }
 
     if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
@@ -616,21 +660,32 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         if (mode == GLFW_MOD_SHIFT)
         {
             mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
         }
         else
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
             mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
 
-            if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-            {
-                mShapes[mSelectedShapeIndex]->mValidPos = false;
-            }
-            else
-            {
-                mShapes[mSelectedShapeIndex]->mValidPos = true;
-            }
+        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = false;
+        }
+        else
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
+
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            std::cout << "Rotate Y: " << mShapes[mSelectedShapeIndex]->mRotate.y << " Box Rotate Y: " << mShapes[mSelectedShapeIndex]->mBox.mRotate.y << endl;
         }
     }
 
@@ -639,21 +694,31 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         if (mode == GLFW_MOD_SHIFT)
         {
             mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
         }
         else
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
             mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
 
-            if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-            {
-                mShapes[mSelectedShapeIndex]->mValidPos = false;
-            }
-            else
-            {
-                mShapes[mSelectedShapeIndex]->mValidPos = true;
-            }
+        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = false;
+        }
+        else
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
+
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 }
