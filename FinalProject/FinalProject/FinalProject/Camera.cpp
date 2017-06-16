@@ -7,6 +7,7 @@
 
 #define ZOOM 0.5f
 #define ROTATE 0.001f
+#define JOYSTICK_ROTATE 0.1f
 #define MOVEMENT_SPEED 0.1f
 
 Camera::Camera()
@@ -125,7 +126,7 @@ void Camera::SetLookAt(const glm::vec2& newMousePosition)
 
 void Camera::JoystickSetLookAt(const glm::vec2& delta)
 {
-    glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
+    glm::mat4 rotation = glm::rotate(-delta.x * JOYSTICK_ROTATE, mUp) * glm::rotate(-delta.y * JOYSTICK_ROTATE, mRight);
     mDirection = glm::normalize(glm::mat3(rotation) * mDirection);
 
     mRight = glm::normalize(glm::cross(mDirection, mUp));

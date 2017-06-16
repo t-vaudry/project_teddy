@@ -39,6 +39,9 @@ private:
     static vector<Shape*> mShapes;
     static bool mOrient;
     static bool mDebug;
+    static int mButtonCount;
+    static glm::vec3 mLightSwitch;
+    static bool mToggleLight;
 public:
     static int mWidth;
     static int mHeight;

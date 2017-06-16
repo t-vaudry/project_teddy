@@ -12,6 +12,7 @@ uniform sampler2D textureSample;
 
 uniform vec3 ambientLight;
 uniform vec3 sunLight;
+uniform vec3 lightSwitch;
 
 uniform float constantFactor;
 uniform float linearFactor;
@@ -51,8 +52,25 @@ void main()
     float room3AttenuationLight = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
 
     //vec4 allLight = vec4(ambientLight + sunAttenuation * vec3(clamp(sun, 0, 1)), 1.0f);
-    vec4 allLight = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) + vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f) + vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f);
+    vec4 room1;
+    if (lightSwitch.x == 1.0f)
+        room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f);
+    else
+        room1 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
+    vec4 room2;
+    if (lightSwitch.y == 1.0f)
+        room2 = vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f);
+    else
+        room2 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    vec4 room3;
+    if (lightSwitch.z == 1.0f)
+        room3 = vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f);
+    else
+        room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+    vec4 allLight = room1 + room2 + room3;
 
     if (invalidPosition)
         color = vec4(1.0f, 0.0f, 0.0f, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);

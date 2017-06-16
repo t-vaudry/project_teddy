@@ -9,6 +9,9 @@ Camera* OpenGLWindow::mCamera;
 bool OpenGLWindow::mOrient = false;
 vector<Shape*> OpenGLWindow::mShapes;
 bool OpenGLWindow::mDebug = false;
+int OpenGLWindow::mButtonCount = 0;
+glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
+bool OpenGLWindow::mToggleLight = true;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
 glm::vec3 OpenGLWindow::mSunLight = glm::vec3(28.0f, 0.0f, 28.0f);
@@ -42,7 +45,7 @@ GLenum OpenGLWindow::InitializeGLEW()
 GLFWwindow* OpenGLWindow::CreateWindow()
 {
     // Create a GLFWwindow object that we can use for GLFW's functions
-    //GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", glfwGetPrimaryMonitor(), nullptr);
+    //GLFWwindow* window = glfwCreateWindow(3840, 2160, "Project", glfwGetPrimaryMonitor(), nullptr);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", nullptr, nullptr);
     if (window == nullptr)
     {
@@ -296,6 +299,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint invalidPosLoc = glGetUniformLocation(program, "invalidPosition");
+    GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
@@ -319,6 +323,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform1i(invalidPosLoc, !shape->mValidPos);
+    glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
 }
 
 void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
@@ -326,6 +331,7 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glUseProgram(program);
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+    GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
 
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
@@ -339,6 +345,7 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     //broadcast the uniform value to the shaders
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
+    glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
 }
 
 void OpenGLWindow::RenderParticles(GLuint program)
@@ -550,6 +557,26 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             mRenderMode = GL_LINE_STRIP;
         else
             mRenderMode = GL_TRIANGLES;
+    }
+
+    if (key == GLFW_KEY_L && action == GLFW_PRESS)
+    {
+        if (mode == GLFW_MOD_SHIFT)
+        {
+            mToggleLight = !mToggleLight;
+            if (mToggleLight)
+                mLightSwitch = glm::vec3(1.0f);
+            else
+                mLightSwitch = glm::vec3(0.0f);
+        }
+        else
+        {
+            int room = GetCurrentRoom(mCamera->GetPosition());
+            if (mLightSwitch[room - 1])
+                mLightSwitch[room - 1] = 0.0f;
+            else
+                mLightSwitch[room - 1] = 1.0f;
+        }
     }
 
     //cout << key << endl;
@@ -779,9 +806,9 @@ void OpenGLWindow::JoystickCallback()
     const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
     const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
-    if ((axes[2] < 0.0f - BIAS) || (axes[2] > 0.0f + BIAS) || (axes[5] < 0.0f - BIAS) || (axes[5] > 0.0f + BIAS))
+    if ((axes[2] < 0.0f - BIAS) || (axes[2] > 0.0f + BIAS) || (axes[3] < 0.0f - BIAS) || (axes[3] > 0.0f + BIAS))
     {
-        mCamera->JoystickSetLookAt(glm::vec2(axes[2], axes[5]));
+        mCamera->JoystickSetLookAt(glm::vec2(axes[2], axes[3]));
     }
 
     if (axes[0] < 0.0f - BIAS)
@@ -848,14 +875,14 @@ void OpenGLWindow::JoystickCallback()
             mShapes[mSelectedShapeIndex]->mBox.Set();
         }
 
-        if (axes[3] > -1.0f + BIAS)
+        if (axes[4] > -1.0f + BIAS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
         }
 
-        if (axes[4] > -1.0f + BIAS)
+        if (axes[5] > -1.0f + BIAS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
@@ -871,10 +898,52 @@ void OpenGLWindow::JoystickCallback()
             mShapes[mSelectedShapeIndex]->mValidPos = true;
         }
 
+        if (buttons[1] == GLFW_PRESS)
+        {
+            bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);
+
+            //If central position and all axes are good, it is valid
+            if (valid)
+            {
+                mShapes[mSelectedShapeIndex]->mAlpha = 1.0f;
+                mSelectedShapeIndex = -1;
+            }
+            else
+            {
+                cout << "INVALID POSITION" << endl;
+            }
+        }
+
         if (mDebug)
         {
             std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
             std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+        }
+    }
+
+    if (buttons[3] == GLFW_PRESS)
+    {
+        mButtonCount++;
+        if (mButtonCount > 4)
+        {
+            mButtonCount = 0;
+            if (buttons[8] == GLFW_PRESS)
+            {
+
+                mToggleLight = !mToggleLight;
+                if (mToggleLight)
+                    mLightSwitch = glm::vec3(1.0f);
+                else
+                    mLightSwitch = glm::vec3(0.0f);
+            }
+            else
+            {
+                int room = GetCurrentRoom(mCamera->GetPosition());
+                if (mLightSwitch[room - 1])
+                    mLightSwitch[room - 1] = 0.0f;
+                else
+                    mLightSwitch[room - 1] = 1.0f;
+            }
         }
     }
 }
