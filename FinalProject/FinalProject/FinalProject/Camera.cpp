@@ -123,6 +123,14 @@ void Camera::SetLookAt(const glm::vec2& newMousePosition)
     mMousePosition = newMousePosition;
 }
 
+void Camera::JoystickSetLookAt(const glm::vec2& delta)
+{
+    glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
+    mDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+
+    mRight = glm::normalize(glm::cross(mDirection, mUp));
+}
+
 void Camera::Reset()
 {
     mPosition = glm::vec3(25.0f, 10.0f, 25.0f);

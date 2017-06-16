@@ -42,6 +42,7 @@ GLenum OpenGLWindow::InitializeGLEW()
 GLFWwindow* OpenGLWindow::CreateWindow()
 {
     // Create a GLFWwindow object that we can use for GLFW's functions
+    //GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", glfwGetPrimaryMonitor(), nullptr);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", nullptr, nullptr);
     if (window == nullptr)
     {
@@ -769,5 +770,111 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
         double x, y;
         glfwGetCursorPos(window, &x, &y);
         mCamera->SetMousePosition(glm::vec2(x, y));
+    }
+}
+
+void OpenGLWindow::JoystickCallback()
+{
+    int count;
+    const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
+    const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+
+    if ((axes[2] < 0.0f - BIAS) || (axes[2] > 0.0f + BIAS) || (axes[5] < 0.0f - BIAS) || (axes[5] > 0.0f + BIAS))
+    {
+        mCamera->JoystickSetLookAt(glm::vec2(axes[2], axes[5]));
+    }
+
+    if (axes[0] < 0.0f - BIAS)
+    {
+        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+    }
+    else if (axes[0] > 0.0f + BIAS)
+    {
+        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+    }
+
+    if (axes[1] < 0.0f - BIAS)
+    {
+        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+    }
+    else if (axes[1] > 0.0f + BIAS)
+    {
+        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
+        bool valid = false;
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+    }
+
+    if (mSelectedShapeIndex != -1)
+    {
+        if (buttons[14] == GLFW_PRESS)
+        {
+            glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (buttons[15] == GLFW_PRESS)
+        {
+            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (buttons[16] == GLFW_PRESS)
+        {
+            glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (buttons[17] == GLFW_PRESS)
+        {
+            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
+            mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (axes[3] > -1.0f + BIAS)
+        {
+            mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (axes[4] > -1.0f + BIAS)
+        {
+            mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+            mShapes[mSelectedShapeIndex]->mBox.Set();
+        }
+
+        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = false;
+        }
+        else
+        {
+            mShapes[mSelectedShapeIndex]->mValidPos = true;
+        }
+
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+        }
     }
 }

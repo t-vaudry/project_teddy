@@ -42,6 +42,9 @@
     <ClInclude Include="Vertex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Particle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -62,5 +65,31 @@
     <ClCompile Include="OpenGLWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="fragment.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="instancedVertex.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="skyboxFragment.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="skyboxVertex.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="textureFragment.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="vertex.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="particleFragment.shader">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="particleVertex.shader">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

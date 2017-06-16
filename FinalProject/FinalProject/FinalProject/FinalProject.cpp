@@ -323,6 +323,7 @@ int main()
     {
         // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
+        //OpenGLWindow::JoystickCallback();
 
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

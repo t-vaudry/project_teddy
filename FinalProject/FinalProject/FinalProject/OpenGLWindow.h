@@ -19,6 +19,7 @@
 #define HEIGHT 2000
 #define NEAR_PLANE 0.01f
 #define FAR_PLANE 1000.0f
+#define BIAS 0.25f
 #define CAMERA_MOVEMENT_SPEED 0.05f
 #define SHAPE_MOVEMENT_SPEED 0.01f
 #define ROTATION_SPEED 1.0f
@@ -48,6 +49,7 @@ public:
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
     static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mode);
+    static void JoystickCallback();
 
     static void InitializeGLFW();
     static GLenum InitializeGLEW();

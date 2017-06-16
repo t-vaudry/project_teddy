@@ -40,6 +40,7 @@ public:
     void Rotate(ROTATION_AXIS axis, float sign);
     void Move(DIRECTION direction);
     void SetLookAt(const glm::vec2& newMousePosition);
+    void JoystickSetLookAt(const glm::vec2& delta);
     void Reset();
 
     inline void SetPosition(glm::vec3 pos) { mPosition = pos; }
