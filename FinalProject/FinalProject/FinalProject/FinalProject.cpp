@@ -503,8 +503,8 @@ int main()
 
     ShapeGenerator::SetWallDimensions(1.0f, 2.0f, 0.25f);
     mWall = ShapeGenerator::GenerateWall();
-    mTopWindow = ShapeGenerator::GenerateWindow();
-    mBottomWindow = ShapeGenerator::GenerateWindow();
+    mTopWindow = ShapeGenerator::GenerateWindowWall();
+    mBottomWindow = ShapeGenerator::GenerateWindowWall();
     mWindows = ShapeGenerator::GenerateWindow();
 
     //Skybox

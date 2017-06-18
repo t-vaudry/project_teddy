@@ -535,7 +535,7 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
     float door12Xmin = 29.99f;
     float door12Xmax = 30.75f;
     float door12Zmin = 27.25f;
-    float door12Zmax = 28.25f;
+    float door12Zmax = 27.75f;
 
     float door23Xmin = 26.50f;
     float door23Xmax = 27.50f;
