@@ -24,8 +24,8 @@
 #define SHAPE_MOVEMENT_SPEED 0.01f
 #define ROTATION_SPEED 1.0f
 
-#define CONSTANT_ATTENUATION 1.75f
-#define LINEAR_ATTENUATION 0.25f
+#define CONSTANT_ATTENUATION 0.75f
+#define LINEAR_ATTENUATION 0.15f
 #define QUADRATIC_ATTENUATION 0.01f
 
 typedef int GLRenderMode;
@@ -64,6 +64,7 @@ public:
     static string CodeShader(string shaderPath);
     static GLuint CompileShader(string shaderCode, int shaderType);
     static GLuint AttachShaders(GLuint vertexShader, GLuint fragmentShader);
+    static GLuint AttachShaders(GLuint vertexShader, GLuint fragmentShader, GLuint geometryShader);
     static void AddShape(Shape* shape);
 
     static void BindBuffers(Shape* shape, GLuint* VBO);
@@ -73,6 +74,7 @@ public:
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
+    static void RenderShapeDepth(Shape* shape, GLuint program, int room);
     static void DrawPoint(Shape* shape, GLuint* VBO); // DEBUG
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void RenderInstancedShape(Shape* shape, GLuint program);

@@ -10,9 +10,16 @@ out vec4 color;
 uniform float alpha;
 uniform sampler2D textureSample;
 
+uniform samplerCube depth;
+uniform samplerCube depth2;
+uniform samplerCube depth3;
+
 uniform vec3 ambientLight;
 uniform vec3 sunLight;
 uniform vec3 lightSwitch;
+
+uniform float far_plane;
+uniform vec3 light_position;
 
 uniform float constantFactor;
 uniform float linearFactor;
@@ -37,12 +44,21 @@ void main()
     float room1Light = max(dot(room1Vector, normalize(vertexNormal)), 0.0f);
     float room1AttenuationLight = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
 
+    float closestDepth = texture(depth, -room1Vector).r;
+	closestDepth *= far_plane;
+	float bias = 0.1; 
+	float shadow1 = distance - bias > closestDepth ? 1.0 : 0.0;
+
     //Room2
     vec3 room2Pos = vec3(33.0f, 0.0f, 28.0f);
     vec3 room2Vector = normalize(room2Pos - vertexPosition);
     distance = distance(room2Pos, vertexPosition);
     float room2Light = max(dot(room2Vector, normalize(vertexNormal)), 0.0f);
     float room2AttenuationLight = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
+
+    closestDepth = texture(depth2, -room2Vector).r;
+	closestDepth *= far_plane;
+	float shadow2 = distance - bias > closestDepth ? 1.0 : 0.0;
 
     //Room3
     vec3 room3Pos = vec3(28.0f, 0.0f, 33.0f);
@@ -51,29 +67,35 @@ void main()
     float room3Light = max(dot(room3Vector, normalize(vertexNormal)), 0.0f);
     float room3AttenuationLight = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
 
+    closestDepth = texture(depth3, -room3Vector).r;
+	closestDepth *= far_plane;
+	float shadow3 = distance - bias > closestDepth ? 1.0 : 0.0;
+
     //vec4 allLight = vec4(ambientLight + sunAttenuation * vec3(clamp(sun, 0, 1)), 1.0f);
     vec4 room1;
     if (lightSwitch.x == 1.0f)
-        room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f);
+        room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) * (1-shadow1);
     else
         room1 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vec4 room2;
     if (lightSwitch.y == 1.0f)
-        room2 = vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f);
+        room2 = vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f) * (1 - shadow2);
     else
         room2 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vec4 room3;
     if (lightSwitch.z == 1.0f)
-        room3 = vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f);
+        room3 = vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f) * (1 - shadow3);
     else
         room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    vec4 allLight = room1 + room2 + room3;
+    //vec4 allLight = room1 + room2 + room3 + vec4(0.1f, 0.1f, 0.1f, 1.0f);
+
+    vec4 allLight = room1 + room2 + room3 + vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
     if (invalidPosition)
         color = vec4(1.0f, 0.0f, 0.0f, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);
     else
         color = allLight * vec4(texture(textureSample, vertexUV).rgb, alpha);
-} 
+}
