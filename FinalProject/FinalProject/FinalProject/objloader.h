@@ -1,7 +1,7 @@
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
 #include <vector>
-#include "Vertex.h"
+#include <Vertex.h>
 #include <glew.h>
 
 using namespace std;

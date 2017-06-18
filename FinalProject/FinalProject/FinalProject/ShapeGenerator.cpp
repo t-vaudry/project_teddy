@@ -1,5 +1,5 @@
-#include "stdafx.h"
-#include "ShapeGenerator.h"
+#include <stdafx.h>
+#include <ShapeGenerator.h>
 
 #include <iostream>
 
@@ -8,6 +8,7 @@ float ShapeGenerator::mWallHeight = 1.0f;
 float ShapeGenerator::mWallDepth = 1.0f;
 vector<glm::mat4> ShapeGenerator::mTopWindowMatrices;
 vector<glm::mat4> ShapeGenerator::mBottomWindowMatrices;
+vector<glm::mat4> ShapeGenerator::mWindowMatrices;
 
 Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 rotate, glm::vec3 translate)
 {
@@ -211,9 +212,16 @@ Shape ShapeGenerator::GenerateWall()
     return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight, mWallDepth);
 }
 
-Shape ShapeGenerator::GenerateWindow()
+Shape ShapeGenerator::GenerateWindowWall()
 {
     return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight/3.0f, mWallDepth);
+}
+
+Shape ShapeGenerator::GenerateWindow()
+{
+    Shape shape = GenerateQuad(glm::vec3(0.0f, 0.0f, 1.0f), mWallWidth, mWallHeight, 0.00075f);
+    shape.mAlpha = 0.05f;
+    return shape;
 }
 
 Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 color)
@@ -336,6 +344,61 @@ Shape ShapeGenerator::GenerateTerrain(glm::vec3 color, float height, bool invers
     return terrain;
 }
 
+Shape ShapeGenerator::GenerateCrosshair()
+{
+    Shape crosshair;
+
+    glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    Vertex vertices[] = {
+        Vertex(glm::vec3(0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(20.0f, 0.0f, 0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(-20.0f, 0.0f, 0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f, 20.0f, 0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+        Vertex(glm::vec3(0.0f, -20.0f, 0.0f), color, glm::vec3(0.0f), glm::vec2(0.0f, 0.0f)),
+    };
+
+    crosshair.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
+
+    crosshair.mVertices = new Vertex[crosshair.mNumberOfVertices];
+    memcpy(crosshair.mVertices, vertices, sizeof(vertices));
+
+    return crosshair;
+}
+
+Shape ShapeGenerator::GenerateMenu()
+{
+    Shape menu;
+
+    glm::vec3 color = glm::vec3(1.0f);
+
+    glm::vec2 uvs[] = {
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(0.0f, 1.0f),
+        glm::vec2(1.0f, 0.0f),
+        glm::vec2(1.0f, 1.0f)
+    };
+
+    Vertex vertices[] = {
+        Vertex(glm::vec3(-1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[0]),
+        Vertex(glm::vec3(1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
+        Vertex(glm::vec3(-1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
+        Vertex(glm::vec3(1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
+        Vertex(glm::vec3(1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[3]),
+        Vertex(glm::vec3(-1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
+    };
+
+    menu.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
+
+    menu.mVertices = new Vertex[menu.mNumberOfVertices];
+    memcpy(menu.mVertices, vertices, sizeof(vertices));
+
+    return menu;
+}
+
 void ShapeGenerator::SetWallDimensions(float w, float h, float d)
 {
     mWallWidth = w;
@@ -371,6 +434,7 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
         {
             mTopWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, mWallHeight / 2.0f, -(backWallLength + 1))));
             mBottomWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, -mWallHeight / 2.0f, -(backWallLength + 1))));
+            mWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, -(backWallLength + 1))));
             continue;
         }
         model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, -(backWallLength + 1))));
@@ -394,6 +458,7 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
         {
             mTopWindowMatrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, mWallHeight / 2.0f, mWallWidth * sideWallLength)));
             mBottomWindowMatrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, -mWallHeight / 2.0f, mWallWidth * sideWallLength)));
+            mWindowMatrices.push_back(glm::translate(model_matrices[i], glm::vec3(0.0f, 0.0f, mWallWidth * sideWallLength)));
             continue;
         }
 
@@ -417,6 +482,7 @@ vector<glm::mat4> ShapeGenerator::GenerateWallModelMatrices()
         {
             mTopWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, mWallHeight/2.0f, 0.0f)));
             mBottomWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, -mWallHeight / 2.0f, 0.0f)));
+            mWindowMatrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, 0.0f)));
             continue;
         }
         model_matrices.push_back(glm::translate(nextWallBegin, glm::vec3(-mWallWidth * i, 0.0f, 0.0f)));
@@ -451,8 +517,12 @@ vector<glm::mat4> ShapeGenerator::GetTopWindowMatrices()
     return mTopWindowMatrices;
 }
 
-
 vector<glm::mat4> ShapeGenerator::GetBottomWindowMatrices()
 {
     return mBottomWindowMatrices;
+}
+
+vector<glm::mat4> ShapeGenerator::GetWindowMatrices()
+{
+    return mWindowMatrices;
 }

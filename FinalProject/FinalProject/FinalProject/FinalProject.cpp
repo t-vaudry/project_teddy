@@ -1,5 +1,5 @@
 // CG_Assignment1.cpp : Defines the entry point for the console application.
-#include "stdafx.h"
+#include <stdafx.h>
 
 #include <glew.h>   // include GL Extension Wrangler
 #include <glfw3.h>  // include GLFW helper library
@@ -7,11 +7,10 @@
 #include <iostream>
 #include <string>
 
-#include "OpenGLWindow.h"
-#include "Camera.h"
-#include "Shape.h"
-#include "ShapeGenerator.h"
-#include "Particle.h"
+#include <OpenGLWindow.h>
+#include <Camera.h>
+#include <Shape.h>
+#include <ShapeGenerator.h>
 
 #define CHECK_NULL(a) if (!a) return -1;
 #define CHECK_STRING(a) if (a.empty()) return -1;
@@ -33,7 +32,10 @@ GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
 GLuint WALL_VAO, WALL_VBO, WALL_MODEL_MATRIX, WALL_TEXTURE;
 GLuint TOPWINDOW_VAO, TOPWINDOW_VBO, TOPWINDOW_MODEL_MATRIX;
 GLuint BOTTOMWINDOW_VAO, BOTTOMWINDOW_VBO, BOTTOMWINDOW_MODEL_MATRIX;
+GLuint WINDOW_VAO, WINDOW_VBO, WINDOW_MODEL_MATRIX, WINDOW_TEXTURE;
 GLuint PARTICLE_VAO, PARTICLE_VBO, PARTICLE_TEXTURE;
+GLuint CROSSHAIR_VAO, CROSSHAIR_VBO;
+GLuint MENU_VAO, MENU_VBO, MENU_TEXTURE;
 
 //For shadow pass only
 GLuint HOUSE_VAO, HOUSE_VBO;
@@ -57,6 +59,9 @@ Shape skybox;
 Shape mFloor;
 Shape topWindow;
 Shape bottomWindow;
+Shape windows;
+Shape crosshair;
+Shape menu;
 
 Shape house;
 
@@ -71,6 +76,7 @@ GLuint shadowShaderProgram;
 
 vector<glm::mat4> topwindow_model;
 vector<glm::mat4> bottomwindow_model;
+vector<glm::mat4> window_model;
 vector<glm::mat4> wall_model;
 vector<glm::mat4> floorModelMatrices;
 vector<glm::mat4> ceilingModelMatrices;
@@ -172,29 +178,44 @@ void RenderScene()
     OpenGLWindow::DrawInstancedShape(&bottomWindow, bottomwindow_model.size(), &BOTTOMWINDOW_VBO);
     glBindVertexArray(0);
 
+    glBindVertexArray(WINDOW_VAO);
+    OpenGLWindow::RenderInstancedShape(&windows, instancedShaderProgram);
+    OpenGLWindow::SetTexture(instancedShaderProgram, 11, "textureSample");
+    OpenGLWindow::DrawInstancedShape(&windows, window_model.size(), &WINDOW_VBO);
+    glBindVertexArray(0);
+
     for (int i = 0; i < SPAWN_PARTICLES; i++)
     {
         int index = GetUnusedParticleIndex(particles);
         particles[index].RespawnParticle();
     }
 
+    float max = glm::distance(glm::vec3(26.1f, 0.0f, 26.1f), glm::vec3(26.0f, 0.0f, 26.0f));
+
     for (int i = 0; i < NUM_OF_PARTICLES; i++)
     {
         Particle& p = particles[i];
-        p.mLife -= DECAY_FACTOR;
+
+        float dist = glm::distance(p.mInfo.mPosition, glm::vec3(26.0f, 0.0f, 26.0f));
+        p.mLife -=  (1.0f - (dist / max)) * DECAY_FACTOR;
 
         if (p.mLife > 0.0f)
         {
-            p.mInfo.mPosition -= p.mVelocity * DECAY_FACTOR;
-            p.mInfo.mAlpha -= DECAY_FACTOR;
+            p.mInfo.mPosition -= p.mVelocity * 0.1f * DECAY_FACTOR;
+            p.mInfo.mAlpha -= (1.0f - (dist / max)) * DECAY_FACTOR;
         }
     }
 
+    glEnable(GL_MULTISAMPLE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBindVertexArray(PARTICLE_VAO);
     OpenGLWindow::BindParticleBuffers(particles, &PARTICLE_VBO);
     OpenGLWindow::RenderParticles(particleShaderProgram);
     OpenGLWindow::SetTexture(particleShaderProgram, 5, "tex");
     OpenGLWindow::DrawParticles(particles, &PARTICLE_VBO);
+    glBindVertexArray(0);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_MULTISAMPLE);
 }
 
 void RenderSceneDepth(int room)
@@ -217,8 +238,6 @@ void RenderSceneDepth(int room)
     OpenGLWindow::RenderShapeDepth(&object2, shadowShaderProgram, room);
     glUniform1f(glGetUniformLocation(shaderProgram, "far_plane"), 50.0f);
     OpenGLWindow::DrawShape(&object2, &OBJECT_VBO);
-    glBindVertexArray(0);
-
     glBindVertexArray(0);
 }
 
@@ -272,7 +291,6 @@ void GenerateFBO(int room)
 void DepthPass(int room)
 {
     GLuint fbo;
-    GLuint cubeMap;
     glm::vec3 light;
 
     if (room == 1)
@@ -322,7 +340,7 @@ void DepthPass(int room)
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
-    srand(time(NULL));
+    srand(0);
     OpenGLWindow::InitializeGLFW();
 
     GLFWwindow* window = OpenGLWindow::CreateWindow();
@@ -433,15 +451,14 @@ int main()
     shadowShaderProgram = OpenGLWindow::AttachShaders(vertexShaderShadows, fragmentShaderShadows, geometryShaderShadows);
     CHECK_ERROR(particleShaderProgram);
 
-    OpenGLWindow::SetPointSize(5.0f);
+    OpenGLWindow::SetPointSize(7.5f);
     OpenGLWindow::SetCamera(&mCamera);
 
-    //Shape object = ShapeGenerator::GenerateOBJ("Sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.75f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(22.0f, 0.25f, 27.0f));
-    //Shape object = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.5f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
-    //cube = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(30.0f, 0.0f, 30.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
     //cube = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(33.0f, 0.0f, 28.0f));
     //cubeFloor = ShapeGenerator::GenerateOBJ("cube.obj", glm::vec3(0.0f), glm::vec3(20, 0.01, 10), glm::vec3(0.0f), glm::vec3(25.0f, -1.0f, 25.0f));
 
@@ -450,17 +467,30 @@ int main()
     //Shape object = ShapeGenerator::GenerateOBJ("bed.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -1.0f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
     object = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(26.0f, 0.0f, 26.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("cheminee.obj", glm::vec3(1.0f), glm::vec3(0.15f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
+    //Shape object = ShapeGenerator::GenerateOBJ("bed.obj", glm::vec3(1.0f), glm::vec3(0.075f, 0.05f, 0.125f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("washing_machine.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("Blind.obj", glm::vec3(1.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(24.7f, 0.1f, 28.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("lamp.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(30.0f, 0.0f, 26.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("light.obj", glm::vec3(1.0f), glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(28.0f, 0.7f, 28.0f));
+    //Shape object2 = ShapeGenerator::GenerateOBJ("headboard.obj", glm::vec3(1.0f), glm::vec3(0.075f, 0.05f, 0.125f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
 
     mFloor = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), -1.0f, false);
     ceiling = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), 1.0f, true);
 
     ShapeGenerator::SetWallDimensions(1.0f, 2.0f, 0.25f);
     wall = ShapeGenerator::GenerateWall();
-    topWindow = ShapeGenerator::GenerateWindow();
-    bottomWindow = ShapeGenerator::GenerateWindow();
+    topWindow = ShapeGenerator::GenerateWindowWall();
+    bottomWindow = ShapeGenerator::GenerateWindowWall();
+    windows = ShapeGenerator::GenerateWindow();
 
     //Skybox
     skybox = ShapeGenerator::GenerateCube(glm::vec3(1.0f), glm::vec3(100.0f));
+
+    crosshair = ShapeGenerator::GenerateCrosshair();
+    menu = ShapeGenerator::GenerateMenu();
+
+    //Shape object3 = ShapeGenerator::GenerateOBJ("House.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f, -90.0f, 180.0f), glm::vec3(30.6357574f, -1.0f, 30.0619736f));
 
     for (int i = 0; i < NUM_OF_PARTICLES; i++)
         particles.push_back(Particle());
@@ -619,6 +649,49 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //----Window
+    glGenVertexArrays(1, &WINDOW_VAO);
+    glGenBuffers(1, &WINDOW_VBO);
+    glGenBuffers(1, &WINDOW_MODEL_MATRIX);
+    glActiveTexture(GL_TEXTURE11);
+    glGenTextures(1, &WINDOW_TEXTURE);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(WINDOW_VAO);
+
+    window_model = ShapeGenerator::GetWindowMatrices();
+    OpenGLWindow::BindBuffers(&windows, &WINDOW_VBO);
+    OpenGLWindow::BindModelBuffers(window_model, &WINDOW_MODEL_MATRIX);
+    OpenGLWindow::BindTexture(&WINDOW_TEXTURE, "window.png");
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glGenVertexArrays(1, &CROSSHAIR_VAO);
+    glGenBuffers(1, &CROSSHAIR_VBO);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(CROSSHAIR_VAO);
+
+    OpenGLWindow::BindBuffers(&crosshair, &CROSSHAIR_VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE10);
+    glGenVertexArrays(1, &MENU_VAO);
+    glGenBuffers(1, &MENU_VBO);
+    glGenTextures(1, &MENU_TEXTURE);
+
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(MENU_VAO);
+
+    OpenGLWindow::BindBuffers(&menu, &MENU_VBO);
+    OpenGLWindow::BindTexture(&MENU_TEXTURE, "menu.png");
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     glActiveTexture(GL_TEXTURE5);
     glGenVertexArrays(1, &PARTICLE_VAO);
     glGenBuffers(1, &PARTICLE_VBO);
@@ -657,6 +730,10 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
     // Set uniform values
     OpenGLWindow::SetUniformFactors(shaderProgram);
     OpenGLWindow::SetUniformFactors(textureShaderProgram);
@@ -667,7 +744,10 @@ int main()
     {
         // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
-        OpenGLWindow::JoystickCallback();
+
+        int present = glfwJoystickPresent(GLFW_JOYSTICK_1);
+        if (present)
+            OpenGLWindow::JoystickCallback(window);
 
         glEnable(GL_DEPTH_TEST);
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -684,6 +764,21 @@ int main()
         OpenGLWindow::DefineViewport(window);
 
         RenderScene();
+
+        glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(CROSSHAIR_VAO);
+        OpenGLWindow::RenderHUDShape(&crosshair, shaderProgram);
+        OpenGLWindow::DrawLines(&crosshair, &CROSSHAIR_VBO);
+        glBindVertexArray(0);
+
+        if (OpenGLWindow::mMenuToggle)
+        {
+            glBindVertexArray(MENU_VAO);
+            OpenGLWindow::RenderHUDShape(&menu, textureShaderProgram);
+            OpenGLWindow::SetTexture(textureShaderProgram, 10, "textureSample");
+            OpenGLWindow::DrawShape(&menu, &MENU_VBO);
+            glBindVertexArray(0);
+        }
 
         //Swap the screen buffers
         glfwSwapBuffers(window);

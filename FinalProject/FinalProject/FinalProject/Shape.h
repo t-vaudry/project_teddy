@@ -2,8 +2,8 @@
 #include <vector>
 #include <glew.h>
 #include <gtx/transform.hpp>
-#include "Vertex.h"
-#include "Miniball.hpp"
+#include <Vertex.h>
+#include <Miniball.hpp>
 
 using namespace std;
 

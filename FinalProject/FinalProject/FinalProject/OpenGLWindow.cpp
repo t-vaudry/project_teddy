@@ -1,5 +1,5 @@
-#include "stdafx.h"
-#include "OpenGLWindow.h"
+#include <stdafx.h>
+#include <OpenGLWindow.h>
 
 // Public static variables
 GLRenderMode OpenGLWindow::mRenderMode = GL_TRIANGLES;
@@ -9,7 +9,10 @@ Camera* OpenGLWindow::mCamera;
 bool OpenGLWindow::mOrient = false;
 vector<Shape*> OpenGLWindow::mShapes;
 bool OpenGLWindow::mDebug = false;
-int OpenGLWindow::mButtonCount = 0;
+bool OpenGLWindow::mMenuToggle = false;
+GLuint OpenGLWindow::mPrevStartButtonState = 0;
+GLuint OpenGLWindow::mPrevButtonAState = 0;
+GLuint OpenGLWindow::mPrevButtonYState = 0;
 glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
 bool OpenGLWindow::mToggleLight = true;
 
@@ -324,6 +327,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint invalidPosLoc = glGetUniformLocation(program, "invalidPosition");
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
+    GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
@@ -349,6 +353,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform1i(invalidPosLoc, !shape->mValidPos);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
+    glUniform1f(noLightLoc, 0.0f);
 }
 
 void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
@@ -387,13 +392,37 @@ void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
 }
 
+void OpenGLWindow::RenderHUDShape(Shape* shape, GLuint program)
+{
+    glUseProgram(program);
+    GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
+    GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
+    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+    GLuint noLightLoc = glGetUniformLocation(program, "noLight");
+
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+    model_matrix = glm::translate(model_matrix, glm::vec3(mWidth / 2.0f, mHeight / 2.0f, 0.0f));
+
+    glm::mat4 projection_matrix;
+    projection_matrix = glm::ortho(0.0f, (float)mWidth, (float)mHeight, 0.0f, -1.0f, 1.0f);
+
+    glm::mat4 mvp_matrix;
+    mvp_matrix = projection_matrix * model_matrix;
+
+    //broadcast the uniform value to the shaders
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
+    glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniform1f(alphaLoc, 1.0f);
+    glUniform1f(noLightLoc, 1.0f);
+}
+
 void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
 {
     glUseProgram(program);
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
-    //GLuint lightPosLoc = glGetUniformLocation(program, "light_position");
+    GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
@@ -413,6 +442,7 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
+    glUniform1f(noLightLoc, 0.0f);
 }
 
 void OpenGLWindow::RenderParticles(GLuint program)
@@ -467,13 +497,8 @@ void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
 void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
-    glDrawArrays(GL_LINE_STRIP, 0, shape->mNumberOfVertices);
+    glLineWidth(10.0f);
+    glDrawArrays(GL_LINES, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -494,7 +519,7 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
     //Determine which room we are currently in
     float room1Xmin = 24.75f;
     float room1Xmax = 30.0f;
-    float room1Zmin = 25.25f;
+    float room1Zmin = 25.35f;
     float room1Zmax = 29.75f;
 
     float room2Xmin = 30.75f;
@@ -508,7 +533,7 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
     float room3Zmax = 34.75f;
 
     float door12Xmin = 29.99f;
-    float door12Xmax = 30.76f;
+    float door12Xmax = 30.75f;
     float door12Zmin = 27.25f;
     float door12Zmax = 28.25f;
 
@@ -557,7 +582,7 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
             continue;
 
         BoundingBox camera = BoundingBox(desiredEndPos, desiredEndPos);
-        if (camera.Intersect(mShapes[i]->mBox))
+        if (camera.Intersect(mShapes[i]->mBox) && mShapes[i]->mTranslate.y < 0.5f)
         {
             returnPos = startPos;
         }
@@ -617,7 +642,6 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     if (key == GLFW_KEY_Q && action == GLFW_PRESS)
         mDebug = !mDebug;
 
-
     if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
         if (mRenderMode == GL_TRIANGLES)
@@ -646,7 +670,6 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         }
     }
 
-    //cout << key << endl;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -867,7 +890,7 @@ void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int actio
     }
 }
 
-void OpenGLWindow::JoystickCallback()
+void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 {
     int count;
     const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
@@ -934,13 +957,15 @@ void OpenGLWindow::JoystickCallback()
             mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
         }
-        if (axes[2] > 0.0f + BIAS)
+
+        if (buttons[4] == GLFW_PRESS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
         }
-        if (axes[2] < 0.0f - BIAS)
+
+        if (buttons[5] == GLFW_PRESS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
@@ -954,7 +979,16 @@ void OpenGLWindow::JoystickCallback()
         {
             mShapes[mSelectedShapeIndex]->mValidPos = true;
         }
-        if (buttons[1] == GLFW_PRESS)
+        if (mDebug)
+        {
+            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+        }
+    }
+
+    if (buttons[0] == GLFW_PRESS && mPrevButtonAState != buttons[0])
+    {
+        if (mSelectedShapeIndex != -1)
         {
             bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);
             //If central position and all axes are good, it is valid
@@ -968,29 +1002,58 @@ void OpenGLWindow::JoystickCallback()
                 cout << "INVALID POSITION" << endl;
             }
         }
-        if (mDebug)
+        else
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            float t = 0.0f;
+            float x = mWidth / 2.0f;
+            float y = mHeight / 2.0f;
+
+            glm::mat4 projection_matrix = GetProjectionMatrix();
+            glm::mat4 view_matrix = mCamera->GetViewMatrix();
+            glm::vec3 camera_position = mCamera->GetPosition();
+
+            glm::vec4 device_ray = glm::vec4(((2.0f * x / mWidth) - 1.0f), (1.0f - (2.0f * y / mHeight)), -1.0f, 1.0f);
+            glm::vec4 eye_ray = glm::inverse(projection_matrix) * device_ray;
+            eye_ray = glm::vec4(eye_ray.x, eye_ray.y, -1.0f, 0.0f);
+            glm::vec3 world_ray = glm::normalize(glm::vec3(glm::inverse(view_matrix) * eye_ray));
+
+            for (unsigned int i = 0; i < mShapes.size(); i++)
+            {
+                float temp = mShapes[i]->IsSelected(world_ray, camera_position);
+
+                if (mSelectedShapeIndex < 0 && temp >= 0)
+                {
+                    mSelectedShapeIndex = i;
+                    t = temp;
+                }
+                else if (temp >= 0 && temp < t)
+                {
+                    mSelectedShapeIndex = i;
+                    t = temp;
+                }
+            }
+
+            if (mSelectedShapeIndex != -1)
+            {
+                mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
+            }
         }
     }
-    if (buttons[3] == GLFW_PRESS)
+    if (buttons[3] == GLFW_PRESS && mPrevButtonYState != buttons[3])
     {
-        mButtonCount++;
-        if (mButtonCount > 4)
+        if (buttons[8] == GLFW_PRESS)
         {
-            mButtonCount = 0;
-            if (buttons[8] == GLFW_PRESS)
-            {
-                mToggleLight = !mToggleLight;
-                if (mToggleLight)
-                    mLightSwitch = glm::vec3(1.0f);
-                else
-                    mLightSwitch = glm::vec3(0.0f);
-            }
+            mToggleLight = !mToggleLight;
+            if (mToggleLight)
+                mLightSwitch = glm::vec3(1.0f);
             else
+                mLightSwitch = glm::vec3(0.0f);
+        }
+        else
+        {
+            int room = GetCurrentRoom(mCamera->GetPosition());
+            if (room <= 3)
             {
-                int room = GetCurrentRoom(mCamera->GetPosition());
                 if (mLightSwitch[room - 1])
                     mLightSwitch[room - 1] = 0.0f;
                 else
@@ -998,4 +1061,14 @@ void OpenGLWindow::JoystickCallback()
             }
         }
     }
+
+    if (buttons[6] == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (buttons[7] == GLFW_PRESS && mPrevStartButtonState != buttons[7])
+        mMenuToggle = !mMenuToggle;
+
+    mPrevStartButtonState = buttons[7];
+    mPrevButtonYState = buttons[3];
+    mPrevButtonAState = buttons[0];
 }

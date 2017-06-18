@@ -1,9 +1,9 @@
-#include "stdafx.h"
-#include "Camera.h"
+#include <stdafx.h>
+#include <Camera.h>
 
-#include "glm.hpp"
-#include "gtx/transform.hpp"
-#include "gtc/type_ptr.hpp"
+#include <glm.hpp>
+#include <gtx/transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 #define ZOOM 0.5f
 #define ROTATE 0.001f
@@ -117,7 +117,10 @@ void Camera::SetLookAt(const glm::vec2& newMousePosition)
     glm::vec2 delta = newMousePosition - mMousePosition;
 
     glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
-    mDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+    glm::vec3 tempDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+
+    if ((acos(glm::dot(tempDirection, mUp)) >= glm::radians(10.0f)) && (acos(glm::dot(tempDirection, -mUp)) >= glm::radians(10.0f)))
+        mDirection = tempDirection;
 
     mRight = glm::normalize(glm::cross(mDirection, mUp));
 
@@ -127,7 +130,11 @@ void Camera::SetLookAt(const glm::vec2& newMousePosition)
 void Camera::JoystickSetLookAt(const glm::vec2& delta)
 {
     glm::mat4 rotation = glm::rotate(-delta.x * JOYSTICK_ROTATE, mUp) * glm::rotate(-delta.y * JOYSTICK_ROTATE, mRight);
-    mDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+
+    glm::vec3 tempDirection = glm::normalize(glm::mat3(rotation) * mDirection);
+
+    if ((acos(glm::dot(tempDirection, mUp)) >= glm::radians(10.0f)) && (acos(glm::dot(tempDirection, -mUp)) >= glm::radians(10.0f)))
+        mDirection = tempDirection;
 
     mRight = glm::normalize(glm::cross(mDirection, mUp));
 }

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include <stdafx.h>
 
 #include <iostream>
 #include <vector>
@@ -8,7 +8,7 @@
 
 #include <glm.hpp>
 
-#include "objloader.h"
+#include <objloader.h>
 
 // .OBJ Loader from http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
 // NOTE: objloader code modified from code provided in COMP371 Lab

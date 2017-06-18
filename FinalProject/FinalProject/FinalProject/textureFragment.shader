@@ -26,6 +26,7 @@ uniform float linearFactor;
 uniform float quadraticFactor;
 
 uniform bool invalidPosition;
+uniform bool noLight;
 
 void main()
 {
@@ -96,6 +97,8 @@ void main()
 
     if (invalidPosition)
         color = vec4(1.0f, 0.0f, 0.0f, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);
+    else if (noLight)
+        color = vec4(texture(textureSample, vertexUV).rgb, alpha);
     else
         color = allLight * vec4(texture(textureSample, vertexUV).rgb, alpha);
 }

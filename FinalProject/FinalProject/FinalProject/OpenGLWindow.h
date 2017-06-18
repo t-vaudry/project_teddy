@@ -10,10 +10,10 @@
 #include <gtc/type_ptr.hpp>
 #include <SOIL.h>
 
-#include "Camera.h"
-#include "Shape.h"
-#include "ShapeGenerator.h"
-#include "Particle.h"
+#include <Camera.h>
+#include <Shape.h>
+#include <ShapeGenerator.h>
+#include <Particle.h>
 
 #define WIDTH 2000
 #define HEIGHT 2000
@@ -39,20 +39,23 @@ private:
     static vector<Shape*> mShapes;
     static bool mOrient;
     static bool mDebug;
-    static int mButtonCount;
+    static GLuint mPrevStartButtonState;
+    static GLuint mPrevButtonAState;
+    static GLuint mPrevButtonYState;
     static glm::vec3 mLightSwitch;
     static bool mToggleLight;
 public:
     static int mWidth;
     static int mHeight;
     static GLRenderMode mRenderMode;
+    static bool mMenuToggle;
     static int mSelectedShapeIndex;
     static glm::vec3 mSunLight;
 
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
     static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mode);
-    static void JoystickCallback();
+    static void JoystickCallback(GLFWwindow* window);
 
     static void InitializeGLFW();
     static GLenum InitializeGLEW();
@@ -75,6 +78,7 @@ public:
     static void SetTexture(GLuint program, int index, char* name);
     static void RenderShape(Shape* shape, GLuint program);
     static void RenderShapeDepth(Shape* shape, GLuint program, int room);
+    static void RenderHUDShape(Shape* shape, GLuint program);
     static void DrawPoint(Shape* shape, GLuint* VBO); // DEBUG
     static void DrawShape(Shape* shape, GLuint* VBO);
     static void RenderInstancedShape(Shape* shape, GLuint program);
