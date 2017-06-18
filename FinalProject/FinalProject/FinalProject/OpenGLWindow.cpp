@@ -988,6 +988,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 
     if (buttons[0] == GLFW_PRESS && mPrevButtonAState != buttons[0])
     {
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
         if (mSelectedShapeIndex != -1)
         {
             bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);

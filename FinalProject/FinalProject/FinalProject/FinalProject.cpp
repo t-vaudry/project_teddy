@@ -25,8 +25,9 @@ float near_plane = 1.0f;
 float far_plane = 50.0f;
 
 //Buffer objects
-GLuint OBJECT_VAO, OBJECT_VBO, OBJ_TEXTURE;
-GLuint OBJECT2_VAO, OBJECT2_VBO, OBJ2_TEXTURE;
+GLuint RECLINER_VAO, RECLINER_VBO, RECLINER_TEXTURE;
+GLuint DESK_VAO, DESK_VBO, DESK_TEXTURE;
+GLuint TABLE_VAO, TABLE_VBO, TABLE_TEXTURE;
 GLuint FLOOR_VAO, FLOOR_VBO, FLOOR_MODEL_MATRIX, FLOOR_TEXTURE;
 GLuint CEILING_VAO, CEILING_VBO, CEILING_MODEL_MATRIX, CEILING_TEXTURE;
 GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
@@ -55,6 +56,8 @@ const unsigned int SHADOW_WIDTH = 1024 * 2, SHADOW_HEIGHT = 1024 * 2;
 //Shapes
 Shape mDesk;
 Shape mRecliner;
+Shape mTable;
+
 Shape mWall;
 Shape mCeiling;
 Shape mSkybox;
@@ -133,7 +136,7 @@ void RenderScene()
     glBindVertexArray(0);
 
     //DESK
-    glBindVertexArray(OBJECT2_VAO);
+    glBindVertexArray(DESK_VAO);
     OpenGLWindow::RenderShape(&mDesk, mTextureShaderProgram);
     glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
@@ -143,11 +146,25 @@ void RenderScene()
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
-    OpenGLWindow::DrawShape(&mDesk, &OBJECT2_VBO);
+    OpenGLWindow::DrawShape(&mDesk, &DESK_VBO);
+    glBindVertexArray(0);
+
+    //TABLE
+    glBindVertexArray(TABLE_VAO);
+    OpenGLWindow::RenderShape(&mTable, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
+    OpenGLWindow::DrawShape(&mTable, &TABLE_VBO);
     glBindVertexArray(0);
 
     //RECLINER
-    glBindVertexArray(OBJECT_VAO);
+    glBindVertexArray(RECLINER_VAO);
     OpenGLWindow::RenderShape(&mRecliner, mTextureShaderProgram);
     glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
@@ -157,7 +174,7 @@ void RenderScene()
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 1, "textureSample");
-    OpenGLWindow::DrawShape(&mRecliner, &OBJECT_VBO);
+    OpenGLWindow::DrawShape(&mRecliner, &RECLINER_VBO);
     glBindVertexArray(0);
 
     //CEILING
@@ -241,17 +258,24 @@ void RenderSceneDepth(int room)
     glBindVertexArray(0);
 
     //DESK
-    glBindVertexArray(OBJECT2_VAO);
+    glBindVertexArray(DESK_VAO);
     OpenGLWindow::RenderShapeDepth(&mDesk, mShadowShaderProgram, room);
     glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
-    OpenGLWindow::DrawShape(&mDesk, &OBJECT2_VBO);
+    OpenGLWindow::DrawShape(&mDesk, &DESK_VBO);
+    glBindVertexArray(0);
+
+    //DESK
+    glBindVertexArray(TABLE_VAO);
+    OpenGLWindow::RenderShapeDepth(&mTable , mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mTable, &TABLE_VBO);
     glBindVertexArray(0);
 
     //RECLINER
-    glBindVertexArray(OBJECT_VAO);
+    glBindVertexArray(RECLINER_VAO);
     OpenGLWindow::RenderShapeDepth(&mRecliner, mShadowShaderProgram, room);
     glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
-    OpenGLWindow::DrawShape(&mRecliner, &OBJECT_VBO);
+    OpenGLWindow::DrawShape(&mRecliner, &RECLINER_VBO);
     glBindVertexArray(0);
 }
 
@@ -478,7 +502,7 @@ int main()
     //Create the objects in the scene
 
     //Shape object2 = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
-    //Shape object = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    mTable = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(27.0616f, -0.75f, 32.7066f));
     //Shape object = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
     //Shape object2 = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
@@ -557,33 +581,49 @@ int main()
     glBindVertexArray(0);
 
     //----Recliner
-    glGenVertexArrays(1, &OBJECT_VAO);
-    glGenBuffers(1, &OBJECT_VBO);
+    glGenVertexArrays(1, &RECLINER_VAO);
+    glGenBuffers(1, &RECLINER_VBO);
 
     glActiveTexture(GL_TEXTURE1);
-    glGenTextures(1, &OBJ_TEXTURE);
+    glGenTextures(1, &RECLINER_TEXTURE);
 
-    glBindVertexArray(OBJECT_VAO);
+    glBindVertexArray(RECLINER_VAO);
 
-    OpenGLWindow::BindBuffers(&mRecliner, &OBJECT_VBO);
-    OpenGLWindow::BindTexture(&OBJ_TEXTURE, "leather.jpg");
+    OpenGLWindow::BindBuffers(&mRecliner, &RECLINER_VBO);
+    OpenGLWindow::BindTexture(&RECLINER_TEXTURE, "leather.jpg");
     OpenGLWindow::AddShape(&mRecliner);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     //----Desk
-    glGenVertexArrays(1, &OBJECT2_VAO);
-    glGenBuffers(1, &OBJECT2_VBO);
+    glGenVertexArrays(1, &DESK_VAO);
+    glGenBuffers(1, &DESK_VBO);
 
     glActiveTexture(GL_TEXTURE6);
-    glGenTextures(1, &OBJ2_TEXTURE);
+    glGenTextures(1, &DESK_TEXTURE);
 
-    glBindVertexArray(OBJECT2_VAO);
+    glBindVertexArray(DESK_VAO);
 
-    OpenGLWindow::BindBuffers(&mDesk, &OBJECT2_VBO);
-    OpenGLWindow::BindTexture(&OBJ2_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::BindBuffers(&mDesk, &DESK_VBO);
+    OpenGLWindow::BindTexture(&DESK_TEXTURE, "light_wood.jpg");
     OpenGLWindow::AddShape(&mDesk);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Table
+    glGenVertexArrays(1, &TABLE_VAO);
+    glGenBuffers(1, &TABLE_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &TABLE_TEXTURE);
+
+    glBindVertexArray(TABLE_VAO);
+
+    OpenGLWindow::BindBuffers(&mTable, &TABLE_VBO);
+    OpenGLWindow::BindTexture(&TABLE_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::AddShape(&mTable);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
