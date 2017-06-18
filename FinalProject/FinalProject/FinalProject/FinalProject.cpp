@@ -28,6 +28,18 @@ float far_plane = 50.0f;
 GLuint RECLINER_VAO, RECLINER_VBO, RECLINER_TEXTURE;
 GLuint DESK_VAO, DESK_VBO, DESK_TEXTURE;
 GLuint TABLE_VAO, TABLE_VBO, TABLE_TEXTURE;
+GLuint CHAIR_VAO, CHAIR_VBO, CHAIR_TEXTURE;
+GLuint SHELVES_VAO, SHELVES_VBO, SHELVES_TEXTURE;
+GLuint SOFA_VAO, SOFA_VBO, SOFA_TEXTURE;
+GLuint DRESSER_VAO, DRESSER_VBO, DRESSER_TEXTURE;
+GLuint WASHING_VAO, WASHING_VBO, WASHING_TEXTURE;
+GLuint LIGHT1_VAO, LIGHT1_VBO, LIGHT1_TEXTURE;
+GLuint LIGHT2_VAO, LIGHT2_VBO, LIGHT2_TEXTURE;
+GLuint LIGHT3_VAO, LIGHT3_VBO, LIGHT3_TEXTURE;
+GLuint LAMP_VAO, LAMP_VBO, LAMP_TEXTURE;
+GLuint BLINDS_VAO, BLINDS_VBO, BLINDS_TEXTURE;
+GLuint BOOKCASE_VAO, BOOKCASE_VBO, BOOKCASE_TEXTURE;
+
 GLuint FLOOR_VAO, FLOOR_VBO, FLOOR_MODEL_MATRIX, FLOOR_TEXTURE;
 GLuint CEILING_VAO, CEILING_VBO, CEILING_MODEL_MATRIX, CEILING_TEXTURE;
 GLuint SKYBOX_VAO, SKYBOX_VBO, SKYBOX_TEXTURE;
@@ -57,6 +69,17 @@ const unsigned int SHADOW_WIDTH = 1024 * 2, SHADOW_HEIGHT = 1024 * 2;
 Shape mDesk;
 Shape mRecliner;
 Shape mTable;
+Shape mChair;
+Shape mShelves;
+Shape mSofa;
+Shape mDresser;
+Shape mWashingMachine;
+Shape mLight1;
+Shape mLight2;
+Shape mLight3;
+Shape mLamp;
+Shape mBlinds1;
+Shape mBookcase;
 
 Shape mWall;
 Shape mCeiling;
@@ -163,6 +186,91 @@ void RenderScene()
     OpenGLWindow::DrawShape(&mTable, &TABLE_VBO);
     glBindVertexArray(0);
 
+    //CHAIR
+    glBindVertexArray(CHAIR_VAO);
+    OpenGLWindow::RenderShape(&mChair, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
+    OpenGLWindow::DrawShape(&mChair, &CHAIR_VBO);
+    glBindVertexArray(0);
+
+    //SHELVES
+    glBindVertexArray(SHELVES_VAO);
+    OpenGLWindow::RenderShape(&mShelves, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
+    OpenGLWindow::DrawShape(&mShelves, &SHELVES_VBO);
+    glBindVertexArray(0);
+
+    //BOOKCASE
+    glBindVertexArray(BOOKCASE_VAO);
+    OpenGLWindow::RenderShape(&mBookcase, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
+    OpenGLWindow::DrawShape(&mBookcase, &BOOKCASE_VBO);
+
+    glBindVertexArray(0);
+
+    //SOFA
+    glBindVertexArray(SOFA_VAO);
+    OpenGLWindow::RenderShape(&mSofa, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 12, "textureSample");
+    OpenGLWindow::DrawShape(&mSofa, &SOFA_VBO);
+    glBindVertexArray(0);
+
+    //DRESSER
+    glBindVertexArray(DRESSER_VAO);
+    OpenGLWindow::RenderShape(&mDresser, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
+    OpenGLWindow::DrawShape(&mDresser, &DRESSER_VBO);
+    glBindVertexArray(0);
+
+    //WASHING MACHINE
+    glBindVertexArray(WASHING_VAO);
+    OpenGLWindow::RenderShape(&mWashingMachine, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 13, "textureSample");
+    OpenGLWindow::DrawShape(&mWashingMachine, &WASHING_VBO);
+    glBindVertexArray(0);
+
     //RECLINER
     glBindVertexArray(RECLINER_VAO);
     OpenGLWindow::RenderShape(&mRecliner, mTextureShaderProgram);
@@ -175,6 +283,76 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 1, "textureSample");
     OpenGLWindow::DrawShape(&mRecliner, &RECLINER_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT1
+    glBindVertexArray(LIGHT1_VAO);
+    OpenGLWindow::RenderShape(&mLight1, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
+    OpenGLWindow::DrawShape(&mLight1, &LIGHT1_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT2
+    glBindVertexArray(LIGHT2_VAO);
+    OpenGLWindow::RenderShape(&mLight2, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
+    OpenGLWindow::DrawShape(&mLight2, &LIGHT2_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT3
+    glBindVertexArray(LIGHT3_VAO);
+    OpenGLWindow::RenderShape(&mLight3, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
+    OpenGLWindow::DrawShape(&mLight3, &LIGHT1_VBO);
+    glBindVertexArray(0);
+
+    //LAMP
+    glBindVertexArray(LAMP_VAO);
+    OpenGLWindow::RenderShape(&mLamp, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 15, "textureSample");
+    OpenGLWindow::DrawShape(&mLamp, &LAMP_VBO);
+    glBindVertexArray(0);
+
+    //BLINDS
+    glBindVertexArray(BLINDS_VAO);
+    OpenGLWindow::RenderShape(&mBlinds1, mTextureShaderProgram);
+    glUniform1f(glGetUniformLocation(mTextureShaderProgram, "far_plane"), far_plane);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 7, "depth");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap2);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    OpenGLWindow::SetTexture(mTextureShaderProgram, 15, "textureSample");
+    OpenGLWindow::DrawShape(&mBlinds1, &BLINDS_VBO);
     glBindVertexArray(0);
 
     //CEILING
@@ -264,11 +442,88 @@ void RenderSceneDepth(int room)
     OpenGLWindow::DrawShape(&mDesk, &DESK_VBO);
     glBindVertexArray(0);
 
-    //DESK
+    //TABLE
     glBindVertexArray(TABLE_VAO);
     OpenGLWindow::RenderShapeDepth(&mTable , mShadowShaderProgram, room);
     glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
     OpenGLWindow::DrawShape(&mTable, &TABLE_VBO);
+    glBindVertexArray(0);
+
+    //CHAIR
+    glBindVertexArray(CHAIR_VAO);
+    OpenGLWindow::RenderShapeDepth(&mChair, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mChair, &CHAIR_VBO);
+    glBindVertexArray(0);
+
+    //SHELVES
+    glBindVertexArray(SHELVES_VAO);
+    OpenGLWindow::RenderShapeDepth(&mShelves, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mShelves, &SHELVES_VBO);
+    glBindVertexArray(0);
+
+    //BOOKCASE
+    glBindVertexArray(BOOKCASE_VAO);
+    OpenGLWindow::RenderShapeDepth(&mBookcase, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mBookcase, &BOOKCASE_VBO);
+    glBindVertexArray(0);
+
+    //SOFA
+    glBindVertexArray(SOFA_VAO);
+    OpenGLWindow::RenderShapeDepth(&mSofa, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mSofa, &SOFA_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT1
+    glBindVertexArray(LIGHT1_VAO);
+    OpenGLWindow::RenderShapeDepth(&mLight1, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mLight1, &LIGHT1_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT2
+    glBindVertexArray(LIGHT2_VAO);
+    OpenGLWindow::RenderShapeDepth(&mLight2, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mLight2, &LIGHT2_VBO);
+    glBindVertexArray(0);
+
+    //LIGHT3
+    glBindVertexArray(LIGHT3_VAO);
+    OpenGLWindow::RenderShapeDepth(&mLight3, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mLight3, &LIGHT3_VBO);
+    glBindVertexArray(0);
+
+    //LAMP
+    glBindVertexArray(LAMP_VAO);
+    OpenGLWindow::RenderShapeDepth(&mLamp, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mLamp, &LAMP_VBO);
+    glBindVertexArray(0);
+
+    //BLINDS
+    glBindVertexArray(BLINDS_VAO);
+    OpenGLWindow::RenderShapeDepth(&mBlinds1, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mBlinds1, &BLINDS_VBO);
+    glBindVertexArray(0);
+
+    //DRESSER
+    glBindVertexArray(DRESSER_VAO);
+    OpenGLWindow::RenderShapeDepth(&mDresser, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mDresser, &DRESSER_VBO);
+    glBindVertexArray(0);
+
+    //WASHING MACHINE
+    glBindVertexArray(WASHING_VAO);
+    OpenGLWindow::RenderShapeDepth(&mWashingMachine, mShadowShaderProgram, room);
+    glUniform1f(glGetUniformLocation(mShaderProgram, "far_plane"), 50.0f);
+    OpenGLWindow::DrawShape(&mWashingMachine, &WASHING_VBO);
     glBindVertexArray(0);
 
     //RECLINER
@@ -501,25 +756,24 @@ int main()
 
     //Create the objects in the scene
 
-    //Shape object2 = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
+    mSofa = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(27.7014f, -0.75f, 25.85f));
     mTable = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(27.0616f, -0.75f, 32.7066f));
-    //Shape object = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
-    //Shape object = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f), glm::vec3(26.0f, -0.75f, 26.0f));
-    //Shape object2 = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
-    //cube = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(33.0f, 0.0f, 28.0f));
-    //cubeFloor = ShapeGenerator::GenerateOBJ("cube.obj", glm::vec3(0.0f), glm::vec3(20, 0.01, 10), glm::vec3(0.0f), glm::vec3(25.0f, -1.0f, 25.0f));
-
+    mChair = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(0.95f), glm::vec3(0.0f), glm::vec3(25.7406f, -0.65f, 32.747f));
+    mShelves = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.15f), glm::vec3(0.0f), glm::vec3(24.953f, -0.75f, 26.00f));
+    mBookcase = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.15f, 0.55f, 0.1f), glm::vec3(0.0f, 180.0f, 0.0f), glm::vec3(29.8122f, -0.75f, 33.9535f));
     mHouse = ShapeGenerator::GenerateOBJ("House.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f, -90.0f, 180.0f), glm::vec3(30.6357574f, -1.0f, 30.0619736f));
-    mRecliner = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
+    mRecliner = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f), glm::vec3(29.3967f, -0.65f, 298.9592f));
+    mDresser = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 180.0f, 0.0f), glm::vec3(32.8624f, -0.5f, 29.8424f));
     //Shape object = ShapeGenerator::GenerateOBJ("bed.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -1.0f, 26.0f));
-    //Shape object = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(26.0f, -0.5f, 26.0f));
-    mDesk = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(26.0f, 0.0f, 26.0f));
+    mDesk = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(30.943f, -0.15f, 26.0033f));
     //Shape object2 = ShapeGenerator::GenerateOBJ("cheminee.obj", glm::vec3(1.0f), glm::vec3(0.15f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
     //Shape object = ShapeGenerator::GenerateOBJ("bed.obj", glm::vec3(1.0f), glm::vec3(0.075f, 0.05f, 0.125f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
-    //Shape object2 = ShapeGenerator::GenerateOBJ("washing_machine.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
-    //Shape object2 = ShapeGenerator::GenerateOBJ("Blind.obj", glm::vec3(1.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(24.7f, 0.1f, 28.0f));
-    //Shape object2 = ShapeGenerator::GenerateOBJ("lamp.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(30.0f, 0.0f, 26.0f));
-    //Shape object2 = ShapeGenerator::GenerateOBJ("light.obj", glm::vec3(1.0f), glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(28.0f, 0.7f, 28.0f));
+    mWashingMachine = ShapeGenerator::GenerateOBJ("washing_machine.obj", glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.0f), glm::vec3(29.3704, -0.6f, 30.6359f));
+    mBlinds1 = ShapeGenerator::GenerateOBJ("Blind.obj", glm::vec3(1.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(24.7f, 0.1f, 28.0f));
+    mLamp = ShapeGenerator::GenerateOBJ("lamp.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(29.3318f, -0.25f, 26.0f));
+    mLight1 = ShapeGenerator::GenerateOBJ("light.obj", glm::vec3(1.0f), glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(28.0f, 0.7f, 28.0f));
+    mLight2 = ShapeGenerator::GenerateOBJ("light.obj", glm::vec3(1.0f), glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(33.0f, 0.7f, 28.0f));
+    mLight3 = ShapeGenerator::GenerateOBJ("light.obj", glm::vec3(1.0f), glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(28.0f, 0.7f, 33.0f));
     //Shape object2 = ShapeGenerator::GenerateOBJ("headboard.obj", glm::vec3(1.0f), glm::vec3(0.075f, 0.05f, 0.125f), glm::vec3(0.0f), glm::vec3(30.0f, -0.5f, 26.0f));
 
     mFloor = ShapeGenerator::GenerateTerrain(glm::vec3(0.85f), -1.0f, false);
@@ -627,6 +881,183 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    //----Chair
+    glGenVertexArrays(1, &CHAIR_VAO);
+    glGenBuffers(1, &CHAIR_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &CHAIR_TEXTURE);
+
+    glBindVertexArray(CHAIR_VAO);
+
+    OpenGLWindow::BindBuffers(&mChair, &CHAIR_VBO);
+    OpenGLWindow::BindTexture(&CHAIR_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::AddShape(&mChair);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Shelves
+    glGenVertexArrays(1, &SHELVES_VAO);
+    glGenBuffers(1, &SHELVES_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &SHELVES_TEXTURE);
+
+    glBindVertexArray(SHELVES_VAO);
+
+    OpenGLWindow::BindBuffers(&mShelves, &SHELVES_VBO);
+    OpenGLWindow::BindTexture(&SHELVES_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::AddShape(&mShelves);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Bookcase
+    glGenVertexArrays(1, &BOOKCASE_VAO);
+    glGenBuffers(1, &BOOKCASE_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &BOOKCASE_TEXTURE);
+
+    glBindVertexArray(BOOKCASE_VAO);
+
+    OpenGLWindow::BindBuffers(&mBookcase, &BOOKCASE_VBO);
+    OpenGLWindow::BindTexture(&BOOKCASE_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::AddShape(&mBookcase);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Sofa
+    glGenVertexArrays(1, &SOFA_VAO);
+    glGenBuffers(1, &SOFA_VBO);
+
+    glActiveTexture(GL_TEXTURE12);
+    glGenTextures(1, &SOFA_TEXTURE);
+
+    glBindVertexArray(SOFA_VAO);
+
+    OpenGLWindow::BindBuffers(&mSofa, &SOFA_VBO);
+    OpenGLWindow::BindTexture(&SOFA_TEXTURE, "Sofa.jpg");
+    OpenGLWindow::AddShape(&mSofa);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Light1
+    glGenVertexArrays(1, &LIGHT1_VAO);
+    glGenBuffers(1, &LIGHT1_VBO);
+
+    glActiveTexture(GL_TEXTURE14);
+    glGenTextures(1, &LIGHT1_TEXTURE);
+
+    glBindVertexArray(LIGHT1_VAO);
+
+    OpenGLWindow::BindBuffers(&mLight1, &LIGHT1_VBO);
+    OpenGLWindow::BindTexture(&LIGHT1_TEXTURE, "tstWallpaper.jpg");
+    OpenGLWindow::AddShape(&mLight1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Light2
+    glGenVertexArrays(1, &LIGHT2_VAO);
+    glGenBuffers(1, &LIGHT2_VBO);
+
+    glActiveTexture(GL_TEXTURE14);
+    glGenTextures(1, &LIGHT2_TEXTURE);
+
+    glBindVertexArray(LIGHT2_VAO);
+
+    OpenGLWindow::BindBuffers(&mLight2, &LIGHT2_VBO);
+    OpenGLWindow::BindTexture(&LIGHT2_TEXTURE, "tstWallpaper.jpg");
+    OpenGLWindow::AddShape(&mLight2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Light3
+    glGenVertexArrays(1, &LIGHT3_VAO);
+    glGenBuffers(1, &LIGHT3_VBO);
+
+    glActiveTexture(GL_TEXTURE14);
+    glGenTextures(1, &LIGHT3_TEXTURE);
+
+    glBindVertexArray(LIGHT3_VAO);
+
+    OpenGLWindow::BindBuffers(&mLight3, &LIGHT3_VBO);
+    OpenGLWindow::BindTexture(&LIGHT3_TEXTURE, "tstWallpaper.jpg");
+    OpenGLWindow::AddShape(&mLight3);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Lamp
+    glGenVertexArrays(1, &LAMP_VAO);
+    glGenBuffers(1, &LAMP_VBO);
+
+    glActiveTexture(GL_TEXTURE15);
+    glGenTextures(1, &LAMP_TEXTURE);
+
+    glBindVertexArray(LAMP_VAO);
+
+    OpenGLWindow::BindBuffers(&mLamp, &LAMP_VBO);
+    OpenGLWindow::BindTexture(&LAMP_TEXTURE, "Chair.jpg");
+    OpenGLWindow::AddShape(&mLamp);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Blinds
+    glGenVertexArrays(1, &BLINDS_VAO);
+    glGenBuffers(1, &BLINDS_VBO);
+
+    glActiveTexture(GL_TEXTURE15);
+    glGenTextures(1, &BLINDS_TEXTURE);
+
+    glBindVertexArray(BLINDS_VAO);
+
+    OpenGLWindow::BindBuffers(&mBlinds1, &BLINDS_VBO);
+    OpenGLWindow::BindTexture(&BLINDS_TEXTURE, "Chair.jpg");
+    //OpenGLWindow::AddShape(&mBlinds1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Dresser
+    glGenVertexArrays(1, &DRESSER_VAO);
+    glGenBuffers(1, &DRESSER_VBO);
+
+    glActiveTexture(GL_TEXTURE6);
+    glGenTextures(1, &DRESSER_TEXTURE);
+
+    glBindVertexArray(DRESSER_VAO);
+
+    OpenGLWindow::BindBuffers(&mDresser, &DRESSER_VBO);
+    OpenGLWindow::BindTexture(&DRESSER_TEXTURE, "light_wood.jpg");
+    OpenGLWindow::AddShape(&mDresser);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    //----Washing Machine
+    glGenVertexArrays(1, &WASHING_VAO);
+    glGenBuffers(1, &WASHING_VBO);
+
+    glActiveTexture(GL_TEXTURE13);
+    glGenTextures(1, &WASHING_TEXTURE);
+
+    glBindVertexArray(WASHING_VAO);
+
+    OpenGLWindow::BindBuffers(&mWashingMachine, &WASHING_VBO);
+    OpenGLWindow::BindTexture(&WASHING_TEXTURE, "washing_machine.png");
+    OpenGLWindow::AddShape(&mWashingMachine);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
 
     //----Floor
     glGenVertexArrays(1, &FLOOR_VAO);

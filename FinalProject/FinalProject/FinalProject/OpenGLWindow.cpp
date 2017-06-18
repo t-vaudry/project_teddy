@@ -518,13 +518,13 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
 {
     //Determine which room we are currently in
     float room1Xmin = 24.75f;
-    float room1Xmax = 30.0f;
+    float room1Xmax = 30.50f;
     float room1Zmin = 25.35f;
     float room1Zmax = 29.75f;
 
     float room2Xmin = 30.75f;
     float room2Xmax = 35.0f;
-    float room2Zmin = 25.75f;
+    float room2Zmin = 25.35f;
     float room2Zmax = 29.75f;
 
     float room3Xmin = 24.75f;
