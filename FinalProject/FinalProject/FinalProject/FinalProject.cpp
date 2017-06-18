@@ -755,6 +755,8 @@ int main()
     OpenGLWindow::SetUniformFactors(mTextureShaderProgram);
     OpenGLWindow::SetUniformFactors(mInstancedShaderProgram);
 
+    bool mFirstPass = true;
+
     // Game loop
     while (!glfwWindowShouldClose(window))
     {
@@ -771,12 +773,15 @@ int main()
 
         OpenGLWindow::DefineViewport(window);
 
-        //--Depth pass (acquires shadows)
-        DepthPass(1);
-        DepthPass(2);
-        DepthPass(3);
+        if (mFirstPass || OpenGLWindow::mSelectedShapeIndex != -1)
+        {
+            mFirstPass = false;
+            //--Depth pass (acquires shadows)
+            DepthPass(1);
+            DepthPass(2);
+            DepthPass(3);
+        }
 
-        glViewport(0, 0, WIDTH, HEIGHT);
         OpenGLWindow::DefineViewport(window);
 
         //--Render the scene normally using the textures obtained from the depth pass to create shadows

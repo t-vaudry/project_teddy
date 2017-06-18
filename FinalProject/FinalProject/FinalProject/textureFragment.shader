@@ -72,7 +72,6 @@ void main()
 	closestDepth *= far_plane;
 	float shadow3 = distance - bias > closestDepth ? 1.0 : 0.0;
 
-    //vec4 allLight = vec4(ambientLight + sunAttenuation * vec3(clamp(sun, 0, 1)), 1.0f);
     vec4 room1;
     if (lightSwitch.x == 1.0f)
         room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) * (1-shadow1);
@@ -91,8 +90,6 @@ void main()
     else
         room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    //vec4 allLight = room1 + room2 + room3 + vec4(0.1f, 0.1f, 0.1f, 1.0f);
-
     vec4 allLight = room1 + room2 + room3 + vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
     if (invalidPosition)
@@ -100,5 +97,5 @@ void main()
     else if (noLight)
         color = vec4(texture(textureSample, vertexUV).rgb, alpha);
     else
-        color = allLight * vec4(texture(textureSample, vertexUV).rgb, alpha);
+        color = vec4(allLight.xyz, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);
 }
