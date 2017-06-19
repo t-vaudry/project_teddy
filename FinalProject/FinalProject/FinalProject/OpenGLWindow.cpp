@@ -19,8 +19,12 @@ glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
 glm::vec3 OpenGLWindow::mLightIntensity = glm::vec3(1.0f);
 bool OpenGLWindow::mToggleLight = true;
 
+float OpenGLWindow::mLightHeight = 0.0f;
+
 int OpenGLWindow::mSelectedShapeIndex = -1;
-glm::vec3 OpenGLWindow::mSunLight = glm::vec3(28.0f, 0.0f, 28.0f);
+glm::vec3 OpenGLWindow::mRoom1Light = glm::vec3(0.0f);
+glm::vec3 OpenGLWindow::mRoom2Light = glm::vec3(0.0f);
+glm::vec3 OpenGLWindow::mRoom3Light = glm::vec3(0.0f);
 
 void OpenGLWindow::InitializeGLFW()
 {
@@ -294,7 +298,6 @@ void OpenGLWindow::SetUniformFactors(GLuint program)
     GLuint quadraticFactorLoc = glGetUniformLocation(program, "quadraticFactor");
 
     GLuint ambientLightLoc = glGetUniformLocation(program, "ambientLight");
-    GLuint sunLightLoc = glGetUniformLocation(program, "sunLight");
     GLuint farPlaneLoc = glGetUniformLocation(program, "farPlane");
 
     float constantFactor = CONSTANT_ATTENUATION;
@@ -305,14 +308,12 @@ void OpenGLWindow::SetUniformFactors(GLuint program)
     glm::vec3 sun_light;
 
     ambient_light = glm::vec3(0.25f);
-    sun_light = mSunLight;
 
     glUniform1f(constantFactorLoc, constantFactor);
     glUniform1f(linearFactorLoc, linearFactor);
     glUniform1f(quadraticFactorLoc, quadraticFactor);
 
     glUniform3fv(ambientLightLoc, 1, &ambient_light[0]);
-    glUniform3fv(sunLightLoc, 1, &sun_light[0]);
     glUniform1f(farPlaneLoc, FAR_PLANE);
 }
 
@@ -369,6 +370,10 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
+    GLuint room1LightLoc = glGetUniformLocation(program, "room1LightPosition");
+    GLuint room2LightLoc = glGetUniformLocation(program, "room2LightPosition");
+    GLuint room3LightLoc = glGetUniformLocation(program, "room3LightPosition");
+
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     model_matrix = glm::translate(model_matrix, shape->mTranslate);
@@ -376,7 +381,6 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, glm::radians(shape->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
     model_matrix = glm::scale(model_matrix, shape->mScale);
-
 
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
@@ -395,6 +399,10 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
     glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
+
+    glUniform3fv(room1LightLoc, 1, &mRoom1Light[0]);
+    glUniform3fv(room2LightLoc, 1, &mRoom2Light[0]);
+    glUniform3fv(room3LightLoc, 1, &mRoom3Light[0]);
 }
 
 void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
@@ -422,13 +430,13 @@ void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
     glm::vec3 lightPos;
 
     if (room == 1)
-        lightPos = glm::vec3(28.0f, 0.0f, 28.0f);
+        lightPos = mRoom1Light;
     else if (room == 2)
-        lightPos = glm::vec3(33.0f, 0.0f, 28.0f);
+        lightPos = mRoom2Light;
     else if (room == 3)
-        lightPos= glm::vec3(28.0f, 0.0f, 33.0f);
+        lightPos= mRoom3Light;
     else
-        lightPos = glm::vec3(22.0f, 2.0f, 28.0f);
+        lightPos = glm::vec3(22.0f, 5.0f, 28.0f);
 
 
     glUniform3fv(lightPosLoc, 1, &lightPos[0]);
@@ -468,6 +476,10 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
+    GLuint room1LightLoc = glGetUniformLocation(program, "room1LightPosition");
+    GLuint room2LightLoc = glGetUniformLocation(program, "room2LightPosition");
+    GLuint room3LightLoc = glGetUniformLocation(program, "room3LightPosition");
+
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
 
@@ -477,17 +489,16 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glm::mat4 vp_matrix;
     vp_matrix = projection_matrix * view_matrix;
 
-    //glm::vec3 light_position = glm::vec3(28.0f, 0.0f, 35.0f);
-
-    //glUniformMatrix4fv(viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(view_matrix));
-    //glUniform3fv(lightPosLoc, 1, &light_position[0]);
-
     //broadcast the uniform value to the shaders
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
     glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
+
+    glUniform3fv(room1LightLoc, 1, &mRoom1Light[0]);
+    glUniform3fv(room2LightLoc, 1, &mRoom2Light[0]);
+    glUniform3fv(room3LightLoc, 1, &mRoom3Light[0]);
 }
 
 void OpenGLWindow::RenderParticles(GLuint program)
@@ -698,6 +709,13 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
     return true;
 }
 
+void OpenGLWindow::SetLights()
+{
+    mRoom1Light = glm::vec3(mShapes[7]->mTranslate.x, mLightHeight, mShapes[7]->mTranslate.z);
+    mRoom2Light = glm::vec3(mShapes[8]->mTranslate.x, mLightHeight, mShapes[8]->mTranslate.z);
+    mRoom3Light = glm::vec3(mShapes[9]->mTranslate.x, mLightHeight, mShapes[9]->mTranslate.z);
+}
+
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
     if (mOrient)
@@ -709,6 +727,14 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     //DEBUG
     if (key == GLFW_KEY_Q && action == GLFW_PRESS)
         mDebug = !mDebug;
+
+    if (key == GLFW_KEY_M && (action == GLFW_PRESS || action == GLFW_REPEAT))
+    {
+        if (mode == GLFW_MOD_SHIFT)
+            mLightHeight -= 0.01f;
+        else
+            mLightHeight += 0.01f;
+    }
 
     if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
@@ -995,15 +1021,15 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
     int room = GetCurrentRoom(mCamera->GetPosition());
     if (room == 1)
     {
-        mLightIntensity[0] = glm::clamp(mLightIntensity[0] + axes[2]/2.0f, -1.0f, 1.0f);
+        mLightIntensity[0] = glm::clamp(mLightIntensity[0] - axes[2]/2.0f, -1.0f, 1.0f);
     }
     else if (room == 2)
     {
-        mLightIntensity[1] = glm::clamp(mLightIntensity[1] + axes[2]/2.0f, -1.0f, 1.0f);
+        mLightIntensity[1] = glm::clamp(mLightIntensity[1] - axes[2]/2.0f, -1.0f, 1.0f);
     }
     else if (room == 3)
     {
-        mLightIntensity[2] = glm::clamp(mLightIntensity[2] + axes[2]/2.0f, -1.0f, 1.0f);
+        mLightIntensity[2] = glm::clamp(mLightIntensity[2] - axes[2]/2.0f, -1.0f, 1.0f);
     }
 
     if (mSelectedShapeIndex != -1)

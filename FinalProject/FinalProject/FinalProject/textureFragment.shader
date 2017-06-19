@@ -15,8 +15,10 @@ uniform samplerCube depth2;
 uniform samplerCube depth3;
 uniform samplerCube depthSun;
 
-uniform vec3 ambientLight;
-uniform vec3 sunLight;
+uniform vec3 room1LightPosition;
+uniform vec3 room2LightPosition;
+uniform vec3 room3LightPosition;
+
 uniform vec3 lightSwitch;
 uniform vec3 lightIntensity;
 
@@ -32,16 +34,8 @@ uniform bool noLight;
 
 void main()
 {
-    // Sun light
-    /*
-    vec3 sunLightVector = normalize(sunLight - vertexPosition);
-    float distance = distance(sunLight, vertexPosition);
-    float sun = max(dot(sunLightVector, normalize(vertexNormal)), 0.0f);
-    float sunAttenuation = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
-    */
-
     //Room1
-    vec3 room1Pos = vec3(28.0f, 0.0f, 28.0f);
+    vec3 room1Pos = room1LightPosition;
     vec3 room1Vector = normalize(room1Pos - vertexPosition);
     float distance = distance(room1Pos, vertexPosition);
     float room1Light = max(dot(room1Vector, normalize(vertexNormal)), 0.0f);
@@ -53,7 +47,7 @@ void main()
 	float shadow1 = distance - bias > closestDepth ? 1.0 : 0.0;
 
     //Room2
-    vec3 room2Pos = vec3(33.0f, 0.0f, 28.0f);
+    vec3 room2Pos = room2LightPosition;
     vec3 room2Vector = normalize(room2Pos - vertexPosition);
     distance = distance(room2Pos, vertexPosition);
     float room2Light = max(dot(room2Vector, normalize(vertexNormal)), 0.0f);
@@ -64,7 +58,7 @@ void main()
 	float shadow2 = distance - bias > closestDepth ? 1.0 : 0.0;
 
     //Room3
-    vec3 room3Pos = vec3(28.0f, 0.0f, 33.0f);
+    vec3 room3Pos = room3LightPosition;
     vec3 room3Vector = normalize(room3Pos - vertexPosition);
     distance = distance(room3Pos, vertexPosition);
     float room3Light = max(dot(room3Vector, normalize(vertexNormal)), 0.0f);
@@ -94,7 +88,7 @@ void main()
         room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     //Sunlight
-    vec3 sunlightPos = vec3(22.0f, 2.0f, 28.0f);
+    vec3 sunlightPos = vec3(22.0f, 5.0f, 28.0f);
     vec3 sunlightVector = normalize(sunlightPos - vertexPosition);
     distance = distance(sunlightPos, vertexPosition);
     float sunlight = max(dot(sunlightVector, normalize(vertexNormal)), 0.0f);

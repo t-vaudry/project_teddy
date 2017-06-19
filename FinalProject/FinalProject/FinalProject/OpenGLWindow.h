@@ -55,7 +55,12 @@ public:
     static GLRenderMode mRenderMode;
     static bool mMenuToggle;
     static int mSelectedShapeIndex;
-    static glm::vec3 mSunLight;
+
+    static float mLightHeight;
+
+    static glm::vec3 mRoom1Light;
+    static glm::vec3 mRoom2Light;
+    static glm::vec3 mRoom3Light;
 
     static void CursorCallback(GLFWwindow* window, double x, double y);
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -101,5 +106,6 @@ public:
     static int GetCurrentRoom(glm::vec3 pos);
     static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex = -1);
     static bool GetIsValidObjectPosition(int objectIndex);
+    static void SetLights();
 };
 

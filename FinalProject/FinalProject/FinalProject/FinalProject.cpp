@@ -133,7 +133,7 @@ vector<glm::mat4> mWindowModelMatrices;
 glm::vec3 lightPos = glm::vec3(28.0f, 0.0f, 28.0f);
 glm::vec3 lightPos2 = glm::vec3(33.0f, 0.0f, 28.0f);
 glm::vec3 lightPos3 = glm::vec3(28.0f, 0.0f, 33.0f);
-glm::vec3 sunlightPos = glm::vec3(22.0f, 2.0f, 28.0f);
+glm::vec3 sunlightPos = glm::vec3(22.0f, 5.0f, 28.0f);
 
 //-----Get index of available particle
 int GetUnusedParticleIndex(vector<Particle>& particles)
@@ -746,17 +746,17 @@ void DepthPass(int room)
     if (room == 1)
     {
         fbo = mDepthMapFBO;
-        light = lightPos;
+        light = OpenGLWindow::mRoom1Light;
     }
     else if (room == 2)
     {
         fbo = mDepthMapFBO2;
-        light = lightPos2;
+        light = OpenGLWindow::mRoom2Light;
     }
     else if (room == 3)
     {
         fbo = mDepthMapFBO3;
-        light = lightPos3;
+        light = OpenGLWindow::mRoom3Light;
     }
     else
     {
@@ -1458,6 +1458,7 @@ int main()
     OpenGLWindow::SetUniformFactors(mInstancedShaderProgram);
 
     bool mFirstPass = true;
+    //OpenGLWindow::SetLights();
 
     // Game loop
     while (!glfwWindowShouldClose(window))
@@ -1474,6 +1475,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         OpenGLWindow::DefineViewport(window);
+        OpenGLWindow::SetLights();
 
         if (mFirstPass || OpenGLWindow::mSelectedShapeIndex != -1)
         {
