@@ -16,6 +16,7 @@ GLuint OpenGLWindow::mPrevButtonXState = 0;
 GLuint OpenGLWindow::mPrevButtonAState = 0;
 GLuint OpenGLWindow::mPrevButtonYState = 0;
 glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
+glm::vec3 OpenGLWindow::mLightIntensity = glm::vec3(1.0f);
 bool OpenGLWindow::mToggleLight = true;
 
 int OpenGLWindow::mSelectedShapeIndex = -1;
@@ -365,6 +366,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint invalidPosLoc = glGetUniformLocation(program, "invalidPosition");
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
+    GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
@@ -391,6 +393,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform1i(invalidPosLoc, !shape->mValidPos);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
+    glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
 }
 
@@ -460,6 +463,7 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
+    GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
     glm::mat4 view_matrix;
@@ -480,6 +484,7 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
+    glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
 }
 
@@ -974,6 +979,21 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
     }
 
+
+    int room = GetCurrentRoom(mCamera->GetPosition());
+    if (room == 1)
+    {
+        mLightIntensity[0] = glm::clamp(mLightIntensity[0] + axes[2]/2.0f, -1.0f, 1.0f);
+    }
+    else if (room == 2)
+    {
+        mLightIntensity[1] = glm::clamp(mLightIntensity[1] + axes[2]/2.0f, -1.0f, 1.0f);
+    }
+    else if (room == 3)
+    {
+        mLightIntensity[2] = glm::clamp(mLightIntensity[2] + axes[2]/2.0f, -1.0f, 1.0f);
+    }
+
     if (mSelectedShapeIndex != -1)
     {
         if (buttons[10] == GLFW_PRESS)
@@ -1108,7 +1128,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 
     if (buttons[0] == GLFW_PRESS && mPrevButtonAState != buttons[0])
     {
-        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
         if (mSelectedShapeIndex != -1)
         {
             bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);

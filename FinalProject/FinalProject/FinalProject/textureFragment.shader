@@ -17,6 +17,7 @@ uniform samplerCube depth3;
 uniform vec3 ambientLight;
 uniform vec3 sunLight;
 uniform vec3 lightSwitch;
+uniform vec3 lightIntensity;
 
 uniform float far_plane;
 uniform vec3 light_position;
@@ -74,19 +75,19 @@ void main()
 
     vec4 room1;
     if (lightSwitch.x == 1.0f)
-        room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) * (1-shadow1);
+        room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) * (1-shadow1) * ((lightIntensity.x + 1.0f)/2.0f);
     else
         room1 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vec4 room2;
     if (lightSwitch.y == 1.0f)
-        room2 = vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f) * (1 - shadow2);
+        room2 = vec4(room2AttenuationLight * vec3(clamp(room2Light, 0, 1)), 1.0f) * (1 - shadow2) * ((lightIntensity.y + 1.0f)/2.0f);
     else
         room2 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     vec4 room3;
     if (lightSwitch.z == 1.0f)
-        room3 = vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f) * (1 - shadow3);
+        room3 = vec4(room3AttenuationLight * vec3(clamp(room3Light, 0, 1)), 1.0f) * (1 - shadow3) * ((lightIntensity.z + 1.0f)/2.0f);
     else
         room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 

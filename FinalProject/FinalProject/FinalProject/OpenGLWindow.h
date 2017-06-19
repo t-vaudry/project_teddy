@@ -21,8 +21,8 @@
 #define FAR_PLANE 1000.0f
 #define BIAS 0.25f
 #define CAMERA_MOVEMENT_SPEED 0.05f
-#define SHAPE_MOVEMENT_SPEED 0.01f
-#define ROTATION_SPEED 1.0f
+#define SHAPE_MOVEMENT_SPEED 0.075f
+#define ROTATION_SPEED 2.5f
 
 #define CONSTANT_ATTENUATION 0.75f
 #define LINEAR_ATTENUATION 0.15f
@@ -42,6 +42,7 @@ private:
     static GLuint mPrevButtonAState;
     static GLuint mPrevButtonYState;
     static glm::vec3 mLightSwitch;
+    static glm::vec3 mLightIntensity;
     static bool mToggleLight;
 
     //For bed

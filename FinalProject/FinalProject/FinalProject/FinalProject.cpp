@@ -866,11 +866,11 @@ int main()
     mSofa = ShapeGenerator::GenerateOBJ("burlap_sofa.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(27.7014f, -0.75f, 25.85f));
     mTable = ShapeGenerator::GenerateOBJ("kitchen_table.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(27.0616f, -0.75f, 32.7066f));
     mChair = ShapeGenerator::GenerateOBJ("kitchen_chair.obj", glm::vec3(0.0f), glm::vec3(0.95f), glm::vec3(0.0f), glm::vec3(25.7406f, -0.65f, 32.747f));
-    mShelves = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.15f), glm::vec3(0.0f), glm::vec3(24.953f, -0.75f, 26.00f));
+    mShelves = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.15f), glm::vec3(0.0f), glm::vec3(25.25f, -0.75f, 26.00f));
     mBookcase = ShapeGenerator::GenerateOBJ("shelves.obj", glm::vec3(0.0f), glm::vec3(0.15f, 0.55f, 0.1f), glm::vec3(0.0f, 180.0f, 0.0f), glm::vec3(29.8122f, -0.75f, 33.9535f));
     mHouse = ShapeGenerator::GenerateOBJ("House.obj", glm::vec3(1.0f), glm::vec3(1.0f), glm::vec3(0.0f, -90.0f, 180.0f), glm::vec3(30.6357574f, -1.0f, 30.0619736f));
     mRecliner = ShapeGenerator::GenerateOBJ("Recliner.obj", glm::vec3(0.0f), glm::vec3(0.75f), glm::vec3(0.0f, 225.0f, 0.0f), glm::vec3(29.3967f, -0.65f, 28.9592f));
-    mDresser = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 180.0f, 0.0f), glm::vec3(32.8624f, -0.5f, 29.8424f));
+    mDresser = ShapeGenerator::GenerateOBJ("dresser.obj", glm::vec3(0.0f), glm::vec3(1.0f), glm::vec3(0.0f, 180.0f, 0.0f), glm::vec3(32.8624f, -0.5f, 29.5424f));
     mDesk = ShapeGenerator::GenerateOBJ("desk.obj", glm::vec3(0.0f), glm::vec3(0.1f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(30.943f, -0.15f, 26.0033f));
     mWashingMachine = ShapeGenerator::GenerateOBJ("washing_machine.obj", glm::vec3(1.0f), glm::vec3(0.9f), glm::vec3(0.0f), glm::vec3(29.3704, -0.6f, 30.6359f));
     mBlinds1 = ShapeGenerator::GenerateOBJ("Blind.obj", glm::vec3(1.0f), glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(24.7f, 0.1f, 28.0f));
