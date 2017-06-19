@@ -38,6 +38,7 @@ private:
     static Camera* mCamera;
     static bool mOrient;
     static GLuint mPrevStartButtonState;
+    static GLuint mPrevButtonXState;
     static GLuint mPrevButtonAState;
     static GLuint mPrevButtonYState;
     static glm::vec3 mLightSwitch;

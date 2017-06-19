@@ -12,6 +12,7 @@ bool OpenGLWindow::mDebug = false;
 bool OpenGLWindow::mMenuToggle = false;
 bool OpenGLWindow::mBedSelected = false;
 GLuint OpenGLWindow::mPrevStartButtonState = 0;
+GLuint OpenGLWindow::mPrevButtonXState = 0;
 GLuint OpenGLWindow::mPrevButtonAState = 0;
 GLuint OpenGLWindow::mPrevButtonYState = 0;
 glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
@@ -672,7 +673,8 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         //If the distance is less than the radius, we are inside, so return the contact point
         if (mShapes[objectIndex]->mBox.Intersect(mShapes[i]->mBox))
         {
-            return false;
+            if (abs(mShapes[objectIndex]->mTranslate.y - mShapes[i]->mTranslate.y) < 0.5f)
+                return false;
         }
     }
 
@@ -1160,6 +1162,9 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
                 }
             }
 
+            if (mSelectedShapeIndex == 14)
+                mSelectedShapeIndex = -1;
+
             if (mSelectedShapeIndex != -1)
             {
                 mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
@@ -1175,25 +1180,23 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
     }
     if (buttons[3] == GLFW_PRESS && mPrevButtonYState != buttons[3])
     {
-        if (buttons[8] == GLFW_PRESS)
+        int room = GetCurrentRoom(mCamera->GetPosition());
+        if (room <= 3)
         {
-            mToggleLight = !mToggleLight;
-            if (mToggleLight)
-                mLightSwitch = glm::vec3(1.0f);
+            if (mLightSwitch[room - 1])
+                mLightSwitch[room - 1] = 0.0f;
             else
-                mLightSwitch = glm::vec3(0.0f);
+                mLightSwitch[room - 1] = 1.0f;
         }
+    }
+
+    if (buttons[2] == GLFW_PRESS && mPrevButtonXState != buttons[2])
+    {
+        mToggleLight = !mToggleLight;
+        if (mToggleLight)
+            mLightSwitch = glm::vec3(1.0f);
         else
-        {
-            int room = GetCurrentRoom(mCamera->GetPosition());
-            if (room <= 3)
-            {
-                if (mLightSwitch[room - 1])
-                    mLightSwitch[room - 1] = 0.0f;
-                else
-                    mLightSwitch[room - 1] = 1.0f;
-            }
-        }
+            mLightSwitch = glm::vec3(0.0f);
     }
 
     if (buttons[6] == GLFW_PRESS)
@@ -1203,6 +1206,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         mMenuToggle = !mMenuToggle;
 
     mPrevStartButtonState = buttons[7];
+    mPrevButtonXState = buttons[2];
     mPrevButtonYState = buttons[3];
     mPrevButtonAState = buttons[0];
 }

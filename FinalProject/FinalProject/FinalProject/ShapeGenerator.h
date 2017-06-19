@@ -2,6 +2,7 @@
 #include <vector>
 #include <Shape.h>
 #include <objloader.h>
+#include <OpenGLWindow.h>
 
 using namespace std;
 

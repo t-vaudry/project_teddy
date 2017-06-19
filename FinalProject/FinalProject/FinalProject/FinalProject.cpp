@@ -1181,6 +1181,18 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
+    //----Fireplace
+    glGenVertexArrays(1, &FIREPLACE_VAO);
+    glGenBuffers(1, &FIREPLACE_VBO);
+
+    glBindVertexArray(FIREPLACE_VAO);
+
+    OpenGLWindow::BindBuffers(&mFireplace, &FIREPLACE_VBO);
+    OpenGLWindow::AddShape(&mFireplace);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
     //----Headboard
     glGenVertexArrays(1, &HEADBOARD_VAO);
     glGenBuffers(1, &HEADBOARD_VBO);
@@ -1205,17 +1217,6 @@ int main()
     OpenGLWindow::BindBuffers(&mBed, &BED_VBO);
     OpenGLWindow::BindTexture(&BED_TEXTURE, "bed.jpg");
     OpenGLWindow::AddShape(&mBed);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    //----Fireplace
-    glGenVertexArrays(1, &FIREPLACE_VAO);
-    glGenBuffers(1, &FIREPLACE_VBO);
-
-    glBindVertexArray(FIREPLACE_VAO);
-
-    OpenGLWindow::BindBuffers(&mFireplace, &FIREPLACE_VBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);

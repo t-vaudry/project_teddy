@@ -479,12 +479,12 @@ Shape ShapeGenerator::GenerateMenu()
     };
 
     Vertex vertices[] = {
-        Vertex(glm::vec3(-1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[0]),
-        Vertex(glm::vec3(1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
-        Vertex(glm::vec3(-1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
-        Vertex(glm::vec3(1250.0f, -750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
-        Vertex(glm::vec3(1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[3]),
-        Vertex(glm::vec3(-1250.0f, 750.0f, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
+        Vertex(glm::vec3(-0.375 * OpenGLWindow::mWidth, -0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[0]),
+        Vertex(glm::vec3(0.375 * OpenGLWindow::mWidth, -0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
+        Vertex(glm::vec3(-0.375 * OpenGLWindow::mWidth, 0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
+        Vertex(glm::vec3(0.375 * OpenGLWindow::mWidth, -0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[2]),
+        Vertex(glm::vec3(0.375 * OpenGLWindow::mWidth, 0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[3]),
+        Vertex(glm::vec3(-0.375 * OpenGLWindow::mWidth, 0.25 * OpenGLWindow::mHeight, 0.0f), color, glm::vec3(0.0f, 1.0f, 0.0f), uvs[1]),
     };
 
     menu.mNumberOfVertices = sizeof(vertices) / sizeof(*vertices);
