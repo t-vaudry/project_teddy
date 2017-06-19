@@ -23,13 +23,20 @@ struct Particle
     float mLife;
 
     Particle()
-        : mVelocity(glm::vec3(0.0f, -1.0f, 0.0f))
+        : mVelocity(glm::vec3(0.0f, -0.5f, 0.0f))
         , mLife(1.0f)
     {
-        float r1 = RandomFloat(0.0f, 0.1f);
-        float r2 = RandomFloat(0.0f, 0.1f);
+        float r1 = 1.0f;
+        float r2 = 1.0f;
+
+        while ((r1 - 0.05f) * (r1 - 0.05f) + (r2 - 0.05f) * (r2 - 0.05f) > 0.01f)
+        {
+            r1 = RandomFloat(0.0f, 0.1f);
+            r2 = RandomFloat(0.0f, 0.1f);
+        }
+
         float r3 = RandomFloat(0.0f, 1.0f);
-        mInfo.mPosition = glm::vec3(26.0f + r1, -1.0f, 26.0f + r2);
+        mInfo.mPosition = glm::vec3(25.5537006f + r1, -0.95f, 29.7165623f + r2);
         mInfo.mColor = glm::vec3(r3);
         mInfo.mUV = glm::vec2(r3);
         mInfo.mAlpha = 1.0f;
@@ -37,11 +44,18 @@ struct Particle
 
     void RespawnParticle()
     {
-        float r1 = RandomFloat(0.0f, 0.1f);
-        float r2 = RandomFloat(0.0f, 0.1f);
+        float r1 = 1.0f;
+        float r2 = 1.0f;
+
+        while ((r1 - 0.05f) * (r1 - 0.05f) + (r2 - 0.05f) * (r2 - 0.05f) > 0.01f)
+        {
+            r1 = RandomFloat(0.0f, 0.1f);
+            r2 = RandomFloat(0.0f, 0.1f);
+        }
+
         float r3 = RandomFloat(0.0f, 1.0f);
         mLife = 1.0f;
-        mInfo.mPosition = glm::vec3(26.0f + r1, -1.0f, 26.0f + r2);
+        mInfo.mPosition = glm::vec3(25.5537006f + r1, -0.95f, 29.7165623f + r2);
         mInfo.mColor = glm::vec3(r3);
         mInfo.mUV = glm::vec2(r3);
         mInfo.mAlpha = 1.0f;

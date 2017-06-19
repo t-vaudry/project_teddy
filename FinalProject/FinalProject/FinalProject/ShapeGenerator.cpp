@@ -103,8 +103,8 @@ Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 r
     cube.InitializeBoundingSphere();
 
     //DEBUG:
-    std::cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
-    std::cout << cube.mRadius << endl;
+    //cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
+    //cout << cube.mRadius << endl;
     return cube;
 }
 
@@ -207,6 +207,102 @@ Shape ShapeGenerator::GenerateQuad(glm::vec3 color, float width, float height, f
     return quad;
 }
 
+Shape ShapeGenerator::GenerateAABB(vector<glm::vec3>& points)
+{
+    Shape aabb;
+
+    float h = 1.0f;
+    glm::vec3 vertices[] = {
+        glm::vec3(points[0].x, -h, points[0].z), // 0
+        glm::vec3(points[0].x, h, points[0].z), // 1
+        glm::vec3(points[1].x, h, points[1].z), // 2
+        glm::vec3(points[3].x, h, points[3].z), // 3
+        glm::vec3(points[3].x, -h, points[3].z), // 4
+        glm::vec3(points[2].x, -h, points[2].z), // 5
+        glm::vec3(points[2].x, h, points[2].z), // 6
+        glm::vec3(points[1].x, -h, points[1].z), // 7
+    };
+
+    glm::vec3 normals[] = {
+        glm::vec3(0.0f, +1.0f, 0.0f), // 0
+        glm::vec3(0.0f, -1.0f, 0.0f), // 1
+        glm::vec3(+1.0f, 0.0f, 0.0f), // 2
+        glm::vec3(-1.0f, 0.0f, 0.0f), // 3
+        glm::vec3(0.0f, 0.0f, +1.0f), // 4
+        glm::vec3(0.0f, 0.0f, -1.0f)  // 5
+    };
+
+    glm::vec2 uvs[] = {
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(0.0f, 1.0f),
+        glm::vec2(1.0f, 0.0f),
+        glm::vec2(1.0f, 1.0f)
+    };
+
+    glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f);
+
+    Vertex vertexData[] = {
+        // FRONT
+        Vertex(vertices[0], color, normals[5], uvs[0]),
+        Vertex(vertices[6], color, normals[5], uvs[3]),
+        Vertex(vertices[1], color, normals[5], uvs[2]),
+        Vertex(vertices[0], color, normals[5], uvs[0]),
+        Vertex(vertices[6], color, normals[5], uvs[3]),
+        Vertex(vertices[5], color, normals[5], uvs[1]),
+
+        // BACK
+        Vertex(vertices[7], color, normals[4], uvs[0]),
+        Vertex(vertices[4], color, normals[4], uvs[1]),
+        Vertex(vertices[2], color, normals[4], uvs[2]),
+        Vertex(vertices[3], color, normals[4], uvs[3]),
+        Vertex(vertices[4], color, normals[4], uvs[1]),
+        Vertex(vertices[2], color, normals[4], uvs[2]),
+
+        // LEFT
+        Vertex(vertices[0], color, normals[3], uvs[1]),
+        Vertex(vertices[1], color, normals[3], uvs[3]),
+        Vertex(vertices[7], color, normals[3], uvs[0]),
+        Vertex(vertices[2], color, normals[3], uvs[2]),
+        Vertex(vertices[1], color, normals[3], uvs[3]),
+        Vertex(vertices[7], color, normals[3], uvs[0]),
+
+        // RIGHT
+        Vertex(vertices[6], color, normals[2], uvs[2]),
+        Vertex(vertices[5], color, normals[2], uvs[0]),
+        Vertex(vertices[4], color, normals[2], uvs[1]),
+        Vertex(vertices[6], color, normals[2], uvs[2]),
+        Vertex(vertices[3], color, normals[2], uvs[3]),
+        Vertex(vertices[4], color, normals[2], uvs[1]),
+
+        // TOP
+        Vertex(vertices[2], color, normals[0], uvs[2]),
+        Vertex(vertices[1], color, normals[0], uvs[0]),
+        Vertex(vertices[6], color, normals[0], uvs[1]),
+        Vertex(vertices[2], color, normals[0], uvs[2]),
+        Vertex(vertices[3], color, normals[0], uvs[3]),
+        Vertex(vertices[6], color, normals[0], uvs[1]),
+
+        // BOTTOM
+        Vertex(vertices[0], color, normals[1], uvs[2]),
+        Vertex(vertices[4], color, normals[1], uvs[1]),
+        Vertex(vertices[5], color, normals[1], uvs[3]),
+        Vertex(vertices[0], color, normals[1], uvs[2]),
+        Vertex(vertices[4], color, normals[1], uvs[1]),
+        Vertex(vertices[7], color, normals[1], uvs[0]),
+    };
+
+    aabb.mNumberOfVertices = sizeof(vertexData) / sizeof(*vertexData);
+
+    aabb.mVertices = new Vertex[aabb.mNumberOfVertices];
+    memcpy(aabb.mVertices, vertexData, sizeof(vertexData));
+
+    aabb.mScale = glm::vec3(1.0f);
+    aabb.mRotate = glm::vec3(0.0f);
+    aabb.mTranslate = glm::vec3(0.0f);
+
+    return aabb;
+}
+
 Shape ShapeGenerator::GenerateWall()
 {
     return GenerateQuad(glm::vec3(1.0f), mWallWidth, mWallHeight, mWallDepth);
@@ -263,12 +359,12 @@ Shape ShapeGenerator::GenerateOBJ(const char* path, glm::vec3 color, glm::vec3 s
     obj.InitializeBoundingBox();
 
     //DEBUG:
-    std::cout << "obj: " << endl;
-    std::cout << obj.mCenter[0] << ", " << obj.mCenter[1] << ", " << obj.mCenter[2] << endl;
-    std::cout << obj.mRadius << endl;
-    std::cout << obj.mBox.mMax[0] << ", " << obj.mBox.mMin[0] << endl;
-    std::cout << obj.mBox.mMax[1] << ", " << obj.mBox.mMin[1] << endl;
-    std::cout << obj.mBox.mMax[2] << ", " << obj.mBox.mMin[2] << endl;
+    //cout << "obj: " << endl;
+    //cout << obj.mCenter[0] << ", " << obj.mCenter[1] << ", " << obj.mCenter[2] << endl;
+    //cout << obj.mRadius << endl;
+    //cout << obj.mBox.mMax[0] << ", " << obj.mBox.mMin[0] << endl;
+    //cout << obj.mBox.mMax[1] << ", " << obj.mBox.mMin[1] << endl;
+    //cout << obj.mBox.mMax[2] << ", " << obj.mBox.mMin[2] << endl;
 
     return obj;
 }
