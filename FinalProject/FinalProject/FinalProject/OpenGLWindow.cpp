@@ -517,25 +517,25 @@ glm::mat4 OpenGLWindow::GetProjectionMatrix()
 int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
 {
     //Determine which room we are currently in
-    float room1Xmin = 24.75f;
-    float room1Xmax = 30.50f;
-    float room1Zmin = 25.35f;
-    float room1Zmax = 29.75f;
+    float room1Xmin = 24.70f;
+    float room1Xmax = 30.25f;
+    float room1Zmin = 25.15f;
+    float room1Zmax = 29.85f;
 
-    float room2Xmin = 30.75f;
-    float room2Xmax = 35.0f;
-    float room2Zmin = 25.35f;
-    float room2Zmax = 29.75f;
+    float room2Xmin = 30.65f;
+    float room2Xmax = 35.35f;
+    float room2Zmin = 25.15f;
+    float room2Zmax = 29.85f;
 
-    float room3Xmin = 24.75f;
-    float room3Xmax = 30.0f;
+    float room3Xmin = 24.70f;
+    float room3Xmax = 30.25f;
     float room3Zmin = 30.25f;
     float room3Zmax = 34.75f;
 
     float door12Xmin = 29.99f;
     float door12Xmax = 30.75f;
-    float door12Zmin = 27.25f;
-    float door12Zmax = 27.75f;
+    float door12Zmin = 27.00f;
+    float door12Zmax = 28.00f;
 
     float door23Xmin = 26.50f;
     float door23Xmax = 27.50f;
