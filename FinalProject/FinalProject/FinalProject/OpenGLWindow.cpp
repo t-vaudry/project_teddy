@@ -757,10 +757,13 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         else
         {
             int room = GetCurrentRoom(mCamera->GetPosition());
-            if (mLightSwitch[room - 1])
-                mLightSwitch[room - 1] = 0.0f;
-            else
-                mLightSwitch[room - 1] = 1.0f;
+            if (room <= 3)
+            {
+                if (mLightSwitch[room - 1])
+                    mLightSwitch[room - 1] = 0.0f;
+                else
+                    mLightSwitch[room - 1] = 1.0f;
+            }
         }
     }
 
