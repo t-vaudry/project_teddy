@@ -36,15 +36,18 @@ class OpenGLWindow
 {
 private:
     static Camera* mCamera;
-    static vector<Shape*> mShapes;
     static bool mOrient;
-    static bool mDebug;
     static GLuint mPrevStartButtonState;
     static GLuint mPrevButtonAState;
     static GLuint mPrevButtonYState;
     static glm::vec3 mLightSwitch;
     static bool mToggleLight;
+
+    //For bed
+    static bool mBedSelected;
 public:
+    static vector<Shape*> mShapes;
+    static bool mDebug;
     static int mWidth;
     static int mHeight;
     static GLRenderMode mRenderMode;
@@ -76,6 +79,7 @@ public:
     static void BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO);
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
+    static void RenderAABB(Shape* shape, GLuint program);
     static void RenderShape(Shape* shape, GLuint program);
     static void RenderShapeDepth(Shape* shape, GLuint program, int room);
     static void RenderHUDShape(Shape* shape, GLuint program);

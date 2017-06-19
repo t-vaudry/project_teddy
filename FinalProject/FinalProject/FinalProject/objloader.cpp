@@ -93,17 +93,17 @@ bool loadOBJ(const char * path, vector<Vertex> & out_vertices, glm::vec3 color)
     for (unsigned int i = 0; i < vertexIndices.size(); i++)
     {
         // Get the indices of its attributes
-        unsigned int vertexIndex = vertexIndices[i].x;
-        unsigned int uvIndex = vertexIndices[i].y;
-        unsigned int normalIndex = vertexIndices[i].z;
+        unsigned int vertexIndex = static_cast<unsigned int>(vertexIndices[i].x);
+        unsigned int uvIndex = static_cast<unsigned int>(vertexIndices[i].y);
+        unsigned int normalIndex = static_cast<unsigned int>(vertexIndices[i].z);
 
         // Get the attributes thanks to the index
         //if (vertexIndex > temp_vertices.size())
-        //    std::cout << "Vertex " << vertexIndex << std::endl;
+        //    std:://cout << "Vertex " << vertexIndex << std::endl;
         //if (normalIndex > temp_normals.size())
-        //    std::cout << "Normal " << normalIndex << std::endl;
+        //    std:://cout << "Normal " << normalIndex << std::endl;
         //if (uvIndex > temp_uvs.size())
-        //    std::cout << "UV " << uvIndex << std::endl;
+        //    std:://cout << "UV " << uvIndex << std::endl;
 
         glm::vec3 vertex = temp_vertices[vertexIndex - 1]; //get the correct vertex
         glm::vec3 normal = temp_normals[normalIndex - 1];

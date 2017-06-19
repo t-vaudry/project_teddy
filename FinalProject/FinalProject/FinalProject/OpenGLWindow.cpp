@@ -10,6 +10,7 @@ bool OpenGLWindow::mOrient = false;
 vector<Shape*> OpenGLWindow::mShapes;
 bool OpenGLWindow::mDebug = false;
 bool OpenGLWindow::mMenuToggle = false;
+bool OpenGLWindow::mBedSelected = false;
 GLuint OpenGLWindow::mPrevStartButtonState = 0;
 GLuint OpenGLWindow::mPrevButtonAState = 0;
 GLuint OpenGLWindow::mPrevButtonYState = 0;
@@ -319,6 +320,42 @@ void OpenGLWindow::SetTexture(GLuint program, int index, char* name)
     glUniform1i(textureLoc, index);
 }
 
+void OpenGLWindow::RenderAABB(Shape* shape, GLuint program)
+{
+    glUseProgram(program);
+    GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
+    GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
+    GLuint alphaLoc = glGetUniformLocation(program, "alpha");
+    GLuint invalidPosLoc = glGetUniformLocation(program, "invalidPosition");
+    GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
+    GLuint noLightLoc = glGetUniformLocation(program, "noLight");
+
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+
+    model_matrix = glm::translate(model_matrix, mShapes[mSelectedShapeIndex]->mTranslate);
+    model_matrix = glm::rotate(model_matrix, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model_matrix = glm::rotate(model_matrix, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    model_matrix = glm::rotate(model_matrix, glm::radians(mShapes[mSelectedShapeIndex]->mRotate.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model_matrix = glm::scale(model_matrix, mShapes[mSelectedShapeIndex]->mScale);
+
+    glm::mat4 view_matrix;
+    view_matrix = mCamera->GetViewMatrix();
+
+    glm::mat4 projection_matrix;
+    projection_matrix = GetProjectionMatrix();
+
+    glm::mat4 mvp_matrix;
+    mvp_matrix = projection_matrix * view_matrix * model_matrix;
+
+    //broadcast the uniform value to the shaders
+    glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
+    glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniform1f(alphaLoc, shape->mAlpha);
+    glUniform1i(invalidPosLoc, !shape->mValidPos);
+    glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
+    glUniform1f(noLightLoc, 0.0f);
+}
+
 void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
 {
     glUseProgram(program);
@@ -570,13 +607,13 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
 glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex)
 {
     //Determine the current room
-    //cout << GetCurrentRoom(startPos) << endl;
+    ////cout << GetCurrentRoom(startPos) << endl;
     //Loop through all shapes in world
     //If within BV of shape, return contact point
     //Else, return desiredEndPoint
     glm::vec3 returnPos = desiredEndPos;
 
-    for (unsigned int i = 0; i < mShapes.size(); i++)
+    for (unsigned int i = 0; i < mShapes.size() - 1; i++)
     {
         if (i == ignoreIndex)
             continue;
@@ -615,7 +652,19 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         return false;
     }
 
-    for (unsigned int i = 0; i < mShapes.size(); i++)
+    //Check all in same room
+    int p1, p2, p3, p4, p5;
+    p1 = GetCurrentRoom(centrePos);
+    p2 = GetCurrentRoom(xPos);
+    p3 = GetCurrentRoom(zPos);
+    p4 = GetCurrentRoom(minusXPos);
+    p5 = GetCurrentRoom(minusZPos);
+    if (!((p1 == p2) && (p1 == p3) && (p1 == p4) && (p1 == p5)))
+    {
+        return false;
+    }
+
+    for (unsigned int i = 0; i < mShapes.size() - 1; i++)
     {
         if (i == objectIndex)
             continue;
@@ -679,7 +728,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -688,7 +737,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -697,7 +746,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
@@ -706,7 +755,7 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
 
-        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
     }
 
     if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && mSelectedShapeIndex != -1)
@@ -744,8 +793,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
         if (mDebug)
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 
@@ -768,8 +817,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
         if (mDebug)
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 
@@ -801,9 +850,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
         if (mDebug)
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
-            std::cout << "Rotate Y: " << mShapes[mSelectedShapeIndex]->mRotate.y << " Box Rotate Y: " << mShapes[mSelectedShapeIndex]->mBox.mRotate.y << endl;
+            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 
@@ -835,8 +883,8 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 
         if (mDebug)
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 }
@@ -923,6 +971,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         bool valid = false;
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
     }
+
     if (mSelectedShapeIndex != -1)
     {
         if (buttons[10] == GLFW_PRESS)
@@ -932,7 +981,17 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+                mShapes.back()->mBox.Set();
+            }
         }
+
         if (buttons[11] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -940,7 +999,17 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mCenter += SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+                mShapes.back()->mBox.Set();
+            }
         }
+
         if (buttons[12] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -948,7 +1017,17 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+                mShapes.back()->mBox.Set();
+            }
         }
+
         if (buttons[13] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -956,6 +1035,15 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
             mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
+                mShapes.back()->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
+                mShapes.back()->mBox.Set();
+            }
         }
 
         if (buttons[4] == GLFW_PRESS)
@@ -963,6 +1051,14 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+                mShapes.back()->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+                mShapes.back()->mBox.Set();
+            }
         }
 
         if (buttons[5] == GLFW_PRESS)
@@ -970,25 +1066,47 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
             mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
             mShapes[mSelectedShapeIndex]->mBox.Set();
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
+                mShapes.back()->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
+                mShapes.back()->mBox.Set();
+            }
         }
+
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
             mShapes[mSelectedShapeIndex]->mValidPos = false;
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mValidPos = false;
+            }
         }
         else
         {
             mShapes[mSelectedShapeIndex]->mValidPos = true;
+
+            // For bed
+            if (mSelectedShapeIndex == mShapes.size() - 2)
+            {
+                mShapes.back()->mValidPos = true;
+            }
         }
+
         if (mDebug)
         {
-            std::cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            std::cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
+            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
+            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
         }
     }
 
     if (buttons[0] == GLFW_PRESS && mPrevButtonAState != buttons[0])
     {
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        //cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
         if (mSelectedShapeIndex != -1)
         {
             bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);
@@ -996,11 +1114,19 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             if (valid)
             {
                 mShapes[mSelectedShapeIndex]->mAlpha = 1.0f;
+
+                // For bed
+                if (mSelectedShapeIndex == mShapes.size() - 2)
+                {
+                    mBedSelected = false;
+                    mShapes.back()->mAlpha = 1.0f;
+                }
+
                 mSelectedShapeIndex = -1;
             }
             else
             {
-                cout << "INVALID POSITION" << endl;
+                //cout << "INVALID POSITION" << endl;
             }
         }
         else
@@ -1037,6 +1163,13 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             if (mSelectedShapeIndex != -1)
             {
                 mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
+
+                // For bed
+                if (mSelectedShapeIndex == mShapes.size() - 2)
+                {
+                    mBedSelected = true;
+                    mShapes.back()->mAlpha = 0.5f;
+                }
             }
         }
     }

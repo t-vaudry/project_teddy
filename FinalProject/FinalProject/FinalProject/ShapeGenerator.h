@@ -17,6 +17,7 @@ private:
 public:
     static Shape GenerateCube(glm::vec3 color, glm::vec3 scale = glm::vec3(1.0f), glm::vec3 rotate = glm::vec3(0.0f), glm::vec3 translate = glm::vec3(0.0f));
     static Shape GenerateQuad(glm::vec3 color, float width, float height, float depth, glm::vec3 rotate = glm::vec3(0.0f), glm::vec3 translate = glm::vec3(0.0f));
+    static Shape GenerateAABB(vector<glm::vec3>& points);
     static Shape GenerateWall();
     static Shape GenerateWindowWall();
     static Shape GenerateWindow();
