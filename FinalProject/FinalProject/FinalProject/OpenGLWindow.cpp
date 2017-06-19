@@ -425,8 +425,10 @@ void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
         lightPos = glm::vec3(28.0f, 0.0f, 28.0f);
     else if (room == 2)
         lightPos = glm::vec3(33.0f, 0.0f, 28.0f);
-    else
+    else if (room == 3)
         lightPos= glm::vec3(28.0f, 0.0f, 33.0f);
+    else
+        lightPos = glm::vec3(22.0f, 2.0f, 28.0f);
 
 
     glUniform3fv(lightPosLoc, 1, &lightPos[0]);
@@ -624,8 +626,12 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
         if (i == ignoreIndex)
             continue;
 
+        //Ignore ceiling lights
+        if (i == 7 || i == 8 || i == 9)
+            continue;
+
         BoundingBox camera = BoundingBox(desiredEndPos, desiredEndPos);
-        if (camera.Intersect(mShapes[i]->mBox) && mShapes[i]->mTranslate.y < 0.5f)
+        if (camera.Intersect(mShapes[i]->mBox))
         {
             returnPos = startPos;
         }
@@ -670,16 +676,22 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         return false;
     }
 
+    //If is ceiling light, only check wall collisions
+    if (objectIndex == 7 || objectIndex == 8 || objectIndex == 9)
+        return true;
+
     for (unsigned int i = 0; i < mShapes.size() - 1; i++)
     {
         if (i == objectIndex)
             continue;
 
+        if (i == 7 || i == 8 || i == 9)
+            continue;
+
         //If the distance is less than the radius, we are inside, so return the contact point
         if (mShapes[objectIndex]->mBox.Intersect(mShapes[i]->mBox))
         {
-            if (abs(mShapes[objectIndex]->mTranslate.y - mShapes[i]->mTranslate.y) < 0.5f)
-                return false;
+            return false;
         }
     }
 

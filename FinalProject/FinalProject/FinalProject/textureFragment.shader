@@ -13,6 +13,7 @@ uniform sampler2D textureSample;
 uniform samplerCube depth;
 uniform samplerCube depth2;
 uniform samplerCube depth3;
+uniform samplerCube depthSun;
 
 uniform vec3 ambientLight;
 uniform vec3 sunLight;
@@ -48,7 +49,7 @@ void main()
 
     float closestDepth = texture(depth, -room1Vector).r;
 	closestDepth *= far_plane;
-	float bias = 0.1; 
+	float bias = 0.15; 
 	float shadow1 = distance - bias > closestDepth ? 1.0 : 0.0;
 
     //Room2
@@ -74,6 +75,7 @@ void main()
 	float shadow3 = distance - bias > closestDepth ? 1.0 : 0.0;
 
     vec4 room1;
+
     if (lightSwitch.x == 1.0f)
         room1 = vec4(room1AttenuationLight * vec3(clamp(room1Light, 0, 1)), 1.0f) * (1-shadow1) * ((lightIntensity.x + 1.0f)/2.0f);
     else
@@ -91,7 +93,19 @@ void main()
     else
         room3 = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-    vec4 allLight = room1 + room2 + room3 + vec4(0.1f, 0.1f, 0.1f, 1.0f);
+    //Sunlight
+    vec3 sunlightPos = vec3(22.0f, 2.0f, 28.0f);
+    vec3 sunlightVector = normalize(sunlightPos - vertexPosition);
+    distance = distance(sunlightPos, vertexPosition);
+    float sunlight = max(dot(sunlightVector, normalize(vertexNormal)), 0.0f);
+    float sunlightAttenuation = 1.0f / (constantFactor + linearFactor * distance + quadraticFactor * distance * distance);
+
+    closestDepth = texture(depthSun, -sunlightVector).r;
+	closestDepth *= far_plane;
+	float shadowSun = distance - bias > closestDepth ? 1.0 : 0.0;
+    vec4 sun = vec4(sunlightAttenuation * vec3(clamp(sunlight, 0, 1)), 1.0f) * (1-shadowSun);
+
+    vec4 allLight = room1 + room2 + room3 + sun + vec4(0.1f, 0.1f, 0.1f, 1.0f);
 
     if (invalidPosition)
         color = vec4(1.0f, 0.0f, 0.0f, 1.0f) * vec4(texture(textureSample, vertexUV).rgb, alpha);

@@ -70,6 +70,9 @@ GLuint mDepthCubeMap2;
 GLuint mDepthMapFBO3;
 GLuint mDepthCubeMap3;
 
+GLuint mDepthMapFBOSun;
+GLuint mDepthCubeMapSun;
+
 const unsigned int SHADOW_WIDTH = 1024 * 2, SHADOW_HEIGHT = 1024 * 2;
 
 //Shapes
@@ -130,6 +133,7 @@ vector<glm::mat4> mWindowModelMatrices;
 glm::vec3 lightPos = glm::vec3(28.0f, 0.0f, 28.0f);
 glm::vec3 lightPos2 = glm::vec3(33.0f, 0.0f, 28.0f);
 glm::vec3 lightPos3 = glm::vec3(28.0f, 0.0f, 33.0f);
+glm::vec3 sunlightPos = glm::vec3(22.0f, 2.0f, 28.0f);
 
 //-----Get index of available particle
 int GetUnusedParticleIndex(vector<Particle>& particles)
@@ -168,6 +172,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mInstancedShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mInstancedShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mInstancedShaderProgram, 2, "textureSample");
     OpenGLWindow::DrawInstancedShape(&mFloor, mFloorModelMatrices.size(), &FLOOR_VBO);
     glBindVertexArray(0);
@@ -215,6 +221,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mDesk, &DESK_VBO);
     glBindVertexArray(0);
@@ -229,6 +237,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mTable, &TABLE_VBO);
     glBindVertexArray(0);
@@ -243,6 +253,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mChair, &CHAIR_VBO);
     glBindVertexArray(0);
@@ -257,6 +269,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mShelves, &SHELVES_VBO);
     glBindVertexArray(0);
@@ -271,6 +285,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mBookcase, &BOOKCASE_VBO);
 
@@ -286,6 +302,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 12, "textureSample");
     OpenGLWindow::DrawShape(&mSofa, &SOFA_VBO);
     glBindVertexArray(0);
@@ -300,6 +318,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 6, "textureSample");
     OpenGLWindow::DrawShape(&mDresser, &DRESSER_VBO);
     glBindVertexArray(0);
@@ -314,6 +334,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 13, "textureSample");
     OpenGLWindow::DrawShape(&mWashingMachine, &WASHING_VBO);
     glBindVertexArray(0);
@@ -328,6 +350,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 1, "textureSample");
     OpenGLWindow::DrawShape(&mRecliner, &RECLINER_VBO);
     glBindVertexArray(0);
@@ -342,6 +366,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
     OpenGLWindow::DrawShape(&mLight1, &LIGHT1_VBO);
     glBindVertexArray(0);
@@ -356,6 +382,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
     OpenGLWindow::DrawShape(&mLight2, &LIGHT2_VBO);
     glBindVertexArray(0);
@@ -370,6 +398,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 14, "textureSample");
     OpenGLWindow::DrawShape(&mLight3, &LIGHT1_VBO);
     glBindVertexArray(0);
@@ -384,6 +414,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 18, "textureSample");
     OpenGLWindow::DrawShape(&mLamp, &LAMP_VBO);
     glBindVertexArray(0);
@@ -398,6 +430,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 15, "textureSample");
     OpenGLWindow::DrawShape(&mBlinds1, &BLINDS_VBO);
     glBindVertexArray(0);
@@ -412,6 +446,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 16, "textureSample");
     OpenGLWindow::DrawShape(&mBedsideTable, &BEDSIDE_TABLE_VBO);
     glBindVertexArray(0);
@@ -426,6 +462,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 17, "textureSample");
     OpenGLWindow::DrawShape(&mBed, &BED_VBO);
     glBindVertexArray(0);
@@ -440,6 +478,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 16, "textureSample");
     OpenGLWindow::DrawShape(&mHeadboard, &HEADBOARD_VBO);
     glBindVertexArray(0);
@@ -454,6 +494,8 @@ void RenderScene()
     OpenGLWindow::SetTexture(mTextureShaderProgram, 8, "depth2");
     glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMap3);
     OpenGLWindow::SetTexture(mTextureShaderProgram, 9, "depth3");
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mDepthCubeMapSun);
+    OpenGLWindow::SetTexture(mInstancedShaderProgram, 19, "depthSun");
     OpenGLWindow::SetTexture(mTextureShaderProgram, 13, "textureSample");
     OpenGLWindow::DrawShape(&mFireplace, &FIREPLACE_VBO);
     glBindVertexArray(0);
@@ -665,6 +707,12 @@ void GenerateFBO(int room)
         cubeMap = mDepthCubeMap3;
         glActiveTexture(GL_TEXTURE9);
     }
+    else
+    {
+        fbo = mDepthMapFBOSun;
+        cubeMap = mDepthCubeMapSun;
+        glActiveTexture(GL_TEXTURE19);
+    }
 
     //Create an empty texture. The depth of the objects in the shadow pass will later be stored here
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
@@ -709,6 +757,11 @@ void DepthPass(int room)
     {
         fbo = mDepthMapFBO3;
         light = lightPos3;
+    }
+    else
+    {
+        fbo = mDepthMapFBOSun;
+        light = sunlightPos;
     }
 
     //Prepare the 6 sides of the cube from the position of the light source
@@ -1386,6 +1439,11 @@ int main()
     glGenTextures(1, &mDepthCubeMap3);
     GenerateFBO(3);
 
+    glGenFramebuffers(1, &mDepthMapFBOSun);
+    glActiveTexture(GL_TEXTURE19);
+    glGenTextures(1, &mDepthCubeMapSun);
+    GenerateFBO(-1);
+
     // Enable blending
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1424,6 +1482,7 @@ int main()
             DepthPass(1);
             DepthPass(2);
             DepthPass(3);
+            DepthPass(-1);
         }
 
         OpenGLWindow::DefineViewport(window);
