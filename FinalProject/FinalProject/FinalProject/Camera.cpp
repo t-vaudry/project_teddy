@@ -18,83 +18,9 @@ Camera::Camera()
     mRight = glm::cross(mDirection, mUp);
 }
 
-void Camera::Pan(const glm::vec2& newMousePosition)
-{
-    glm::vec2 delta = newMousePosition - mMousePosition;
-
-    if (glm::length(delta) > 50.0f)
-    {
-        mMousePosition = newMousePosition;
-        return;
-    }
-
-    mPosition += -0.1f * delta.x * mRight;
-
-    mMousePosition = newMousePosition;
-}
-
-void Camera::Tilt(const glm::vec2& newMousePosition)
-{
-    glm::vec2 delta = newMousePosition - mMousePosition;
-
-    if (glm::length(delta) > 50.0f)
-    {
-        mMousePosition = newMousePosition;
-        return;
-    }
-
-    glm::mat3 rotation = glm::mat3(glm::rotate(-0.5f * glm::radians(delta.y), mRight));
-
-    mPosition = rotation * mPosition;
-    mDirection = glm::normalize(rotation * mDirection);
-    mUp = rotation * mUp;
-    mRight = glm::cross(mDirection, mUp);
-
-    mMousePosition = newMousePosition;
-}
-
-void Camera::Zoom(const glm::vec2& newMousePosition)
-{
-    float delta = newMousePosition.y - mMousePosition.y;
-    if (delta > 50.0f || delta < -50.0f)
-    {
-        mMousePosition = newMousePosition;
-        return;
-    }
-
-    if (delta > 0)
-        mPosition -= ZOOM * mDirection;
-    else
-        mPosition += ZOOM * mDirection;
-
-    mMousePosition = newMousePosition;
-}
-
-void Camera::Rotate(ROTATION_AXIS axis, float sign)
-{
-    glm::vec3 normal;
-    switch (axis)
-    {
-    case X_AXIS:
-        normal = glm::vec3(1.0f, 0.0f, 0.0f);
-        break;
-    case Y_AXIS:
-        normal = glm::vec3(0.0f, 1.0f, 0.0f);
-        break;
-    case Z_AXIS:
-        normal = glm::vec3(0.0f, 0.0f, 1.0f);
-        break;
-    }
-
-    glm::mat3 rotation = glm::mat3(glm::rotate(glm::radians(sign * ROTATE), normal));
-    mPosition = rotation * mPosition;
-    mDirection = glm::normalize(rotation * mDirection);
-    mUp = rotation * mUp;
-    mRight = glm::cross(mDirection, mUp);
-}
-
 void Camera::Move(DIRECTION direction)
 {
+    // Move position in direction specified
     switch (direction)
     {
     case FORWARD:
@@ -112,39 +38,18 @@ void Camera::Move(DIRECTION direction)
     };
 }
 
-void Camera::SetLookAt(const glm::vec2& newMousePosition)
-{
-    glm::vec2 delta = newMousePosition - mMousePosition;
-
-    glm::mat4 rotation = glm::rotate(-delta.x * ROTATE, mUp) * glm::rotate(-delta.y * ROTATE, mRight);
-    glm::vec3 tempDirection = glm::normalize(glm::mat3(rotation) * mDirection);
-
-    if ((acos(glm::dot(tempDirection, mUp)) >= glm::radians(10.0f)) && (acos(glm::dot(tempDirection, -mUp)) >= glm::radians(10.0f)))
-        mDirection = tempDirection;
-
-    mRight = glm::normalize(glm::cross(mDirection, mUp));
-
-    mMousePosition = newMousePosition;
-}
-
 void Camera::JoystickSetLookAt(const glm::vec2& delta)
 {
+    // Determine rotation based on delta from joystick
     glm::mat4 rotation = glm::rotate(-delta.x * JOYSTICK_ROTATE, mUp) * glm::rotate(-delta.y * JOYSTICK_ROTATE, mRight);
 
     glm::vec3 tempDirection = glm::normalize(glm::mat3(rotation) * mDirection);
 
+    // Avoid front and back flip of camera at limits close to mUp
     if ((acos(glm::dot(tempDirection, mUp)) >= glm::radians(10.0f)) && (acos(glm::dot(tempDirection, -mUp)) >= glm::radians(10.0f)))
         mDirection = tempDirection;
 
     mRight = glm::normalize(glm::cross(mDirection, mUp));
-}
-
-void Camera::Reset()
-{
-    mPosition = glm::vec3(25.0f, 10.0f, 25.0f);
-    mDirection = glm::vec3(-1.0f, -0.5f, -1.0f);
-    mUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    mRight = glm::cross(mDirection, mUp);
 }
 
 glm::mat4 Camera::GetViewMatrix() const

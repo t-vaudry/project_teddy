@@ -102,9 +102,6 @@ Shape ShapeGenerator::GenerateCube(glm::vec3 color, glm::vec3 scale, glm::vec3 r
 
     cube.InitializeBoundingSphere();
 
-    //DEBUG:
-    //cout << cube.mCenter[0] << ", " << cube.mCenter[1] << ", " << cube.mCenter[2] << endl;
-    //cout << cube.mRadius << endl;
     return cube;
 }
 
@@ -334,8 +331,6 @@ Shape ShapeGenerator::GenerateLine(glm::vec3 first, glm::vec3 second, glm::vec3 
     line.mVertices = new Vertex[line.mNumberOfVertices];
     memcpy(line.mVertices, vertices, sizeof(vertices));
 
-    //line.InitializeBoundingSphere();
-
     return line;
 }
 
@@ -357,14 +352,6 @@ Shape ShapeGenerator::GenerateOBJ(const char* path, glm::vec3 color, glm::vec3 s
 
     obj.InitializeBoundingSphere();
     obj.InitializeBoundingBox();
-
-    //DEBUG:
-    //cout << "obj: " << endl;
-    //cout << obj.mCenter[0] << ", " << obj.mCenter[1] << ", " << obj.mCenter[2] << endl;
-    //cout << obj.mRadius << endl;
-    //cout << obj.mBox.mMax[0] << ", " << obj.mBox.mMin[0] << endl;
-    //cout << obj.mBox.mMax[1] << ", " << obj.mBox.mMin[1] << endl;
-    //cout << obj.mBox.mMax[2] << ", " << obj.mBox.mMin[2] << endl;
 
     return obj;
 }

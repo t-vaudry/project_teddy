@@ -6,6 +6,7 @@
 #define SPAWN_PARTICLES 100
 #define DECAY_FACTOR 0.1f
 
+// Structure containing information for drawing
 struct ParticleInfo
 {
     ParticleInfo() {}
@@ -18,6 +19,7 @@ struct ParticleInfo
 
 struct Particle
 {
+    // Drawing information and life values
     ParticleInfo mInfo;
     glm::vec3 mVelocity;
     float mLife;
@@ -29,6 +31,7 @@ struct Particle
         float r1 = 1.0f;
         float r2 = 1.0f;
 
+        // Spawn particles in circular shape
         while ((r1 - 0.05f) * (r1 - 0.05f) + (r2 - 0.05f) * (r2 - 0.05f) > 0.01f)
         {
             r1 = RandomFloat(0.0f, 0.1f);
@@ -47,6 +50,7 @@ struct Particle
         float r1 = 1.0f;
         float r2 = 1.0f;
 
+        // Spawn particles in circular shape
         while ((r1 - 0.05f) * (r1 - 0.05f) + (r2 - 0.05f) * (r2 - 0.05f) > 0.01f)
         {
             r1 = RandomFloat(0.0f, 0.1f);

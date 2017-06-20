@@ -7,6 +7,7 @@
 
 using namespace std;
 
+// Bounding box used for collisions
 struct BoundingBox
 {
     BoundingBox(glm::vec3 max, glm::vec3 min)
@@ -48,6 +49,7 @@ struct BoundingBox
         float maxZ = -FLT_MAX;
         float minZ = FLT_MAX;
 
+        // Determine new max and min values
         for (unsigned int i = 0; i < mPoints.size(); i++)
         {
             newPoints.push_back(glm::vec3(model * glm::vec4(mPoints[i], 1.0f)));
@@ -67,6 +69,7 @@ struct BoundingBox
         mMin = glm::vec3(minX, 0.0f, minZ);
     }
 
+    // Check intersection with another box
     bool Intersect(BoundingBox& box)
     {
         return (mMin.x <= box.mMax.x && mMax.x >= box.mMin.x) &&
@@ -74,6 +77,7 @@ struct BoundingBox
     }
 };
 
+// Structure for Shape information
 struct Shape
 {
     Shape()
@@ -159,8 +163,7 @@ struct Shape
         mCenter.x = centerCoords[0];
         mCenter.y = centerCoords[1];
         mCenter.z = centerCoords[2];
-        //mRadius = sqrt(2.0f/3.0f) * sqrt(glm::length(boundingSphere.squared_radius()));
-        mRadius = sqrt(glm::length(boundingSphere.squared_radius())); //Seems to work better with more compelx shapes than sqrt(2/3)
+        mRadius = sqrt(glm::length(boundingSphere.squared_radius()));
 
         //Translate and scale the centre and radius according to the shape's translations
         mCenter *= mScale[0];
@@ -173,6 +176,7 @@ struct Shape
         glm::vec3 max = mVertices[0].mPosition;
         glm::vec3 min = mVertices[0].mPosition;
 
+        // Determine max and min values
         for (unsigned int i = 1; i < mNumberOfVertices; i++)
         {
             if (mVertices[i].mPosition.x < min.x)
@@ -203,6 +207,7 @@ struct Shape
             }
         }
 
+        // Initialize bounding box
         mBox = BoundingBox(max, min);
         mBox.mScale = mScale;
         mBox.mRotate = mRotate;
@@ -211,6 +216,7 @@ struct Shape
         mBox.Set();
     }
 
+    // Determine if ray cast goes through bounding sphere
     float IsSelected(glm::vec3& world_ray, glm::vec3& camera_position)
     {
         glm::vec3 difference = camera_position - mCenter;

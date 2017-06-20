@@ -55,9 +55,7 @@ public:
     static GLRenderMode mRenderMode;
     static bool mMenuToggle;
     static int mSelectedShapeIndex;
-
     static float mLightHeight;
-
     static glm::vec3 mRoom1Light;
     static glm::vec3 mRoom2Light;
     static glm::vec3 mRoom3Light;
@@ -71,9 +69,17 @@ public:
     static GLenum InitializeGLEW();
     static GLFWwindow* CreateWindow();
     static void DefineViewport(GLFWwindow* window);
+
     static GLfloat GetAspectRatio();
+    static glm::mat4 GetProjectionMatrix();
+    static int GetCurrentRoom(glm::vec3 pos);
+    static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, int ignoreIndex = -1);
+    static bool GetIsValidObjectPosition(int objectIndex);
+
     static void SetCamera(Camera* camera);
     static inline void SetPointSize(GLfloat size) { glPointSize(size); }
+    static inline void SetLineWidth(GLfloat size) { glLineWidth(size); }
+
     static string CodeShader(string shaderPath);
     static GLuint CompileShader(string shaderCode, int shaderType);
     static GLuint AttachShaders(GLuint vertexShader, GLuint fragmentShader);
@@ -84,28 +90,24 @@ public:
     static void BindSkyboxTexture(GLuint* texture, vector<const GLchar*> faces);
     static void BindTexture(GLuint* texture, char* path);
     static void BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO);
+    static void BindParticleBuffers(vector<Particle>& particles, GLuint* VBO);
+
     static void SetUniformFactors(GLuint program);
     static void SetTexture(GLuint program, int index, char* name);
+    static void SetLights();
+
     static void RenderAABB(Shape* shape, GLuint program);
     static void RenderShape(Shape* shape, GLuint program);
     static void RenderShapeDepth(Shape* shape, GLuint program, int room);
     static void RenderHUDShape(Shape* shape, GLuint program);
-    static void DrawPoint(Shape* shape, GLuint* VBO); // DEBUG
-    static void DrawShape(Shape* shape, GLuint* VBO);
     static void RenderInstancedShape(Shape* shape, GLuint program);
+    static void RenderParticles(GLuint program);
+
+    static void DrawPoint(Shape* shape, GLuint* VBO);
+    static void DrawShape(Shape* shape, GLuint* VBO);
     static void DrawInstancedShape(Shape* shape, int size, GLuint* VBO);
     static void DrawSkybox(Shape* shape, GLuint* VBO);
     static void DrawLines(Shape* shape, GLuint* VBO);
-
-    static void BindParticleBuffers(vector<Particle>& particles, GLuint* VBO);
-    static void RenderParticles(GLuint program);
     static void DrawParticles(vector<Particle>& particles, GLuint* VBO);
-
-    static glm::mat4 GetProjectionMatrix();
-
-    static int GetCurrentRoom(glm::vec3 pos);
-    static glm::vec3 GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex = -1);
-    static bool GetIsValidObjectPosition(int objectIndex);
-    static void SetLights();
 };
 

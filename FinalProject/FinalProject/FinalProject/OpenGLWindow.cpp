@@ -18,9 +18,7 @@ GLuint OpenGLWindow::mPrevButtonYState = 0;
 glm::vec3 OpenGLWindow::mLightSwitch = glm::vec3(1.0f);
 glm::vec3 OpenGLWindow::mLightIntensity = glm::vec3(1.0f);
 bool OpenGLWindow::mToggleLight = true;
-
 float OpenGLWindow::mLightHeight = 0.0f;
-
 int OpenGLWindow::mSelectedShapeIndex = -1;
 glm::vec3 OpenGLWindow::mRoom1Light = glm::vec3(0.0f);
 glm::vec3 OpenGLWindow::mRoom2Light = glm::vec3(0.0f);
@@ -55,8 +53,11 @@ GLenum OpenGLWindow::InitializeGLEW()
 GLFWwindow* OpenGLWindow::CreateWindow()
 {
     // Create a GLFWwindow object that we can use for GLFW's functions
-    //GLFWwindow* window = glfwCreateWindow(3840, 2160, "Project", glfwGetPrimaryMonitor(), nullptr);
     GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Project", nullptr, nullptr);
+
+    // For fullscreen, use line below. Adjust values to screen resolution (width, height)
+    //GLFWwindow* window = glfwCreateWindow(3840, 2160, "Project", glfwGetPrimaryMonitor(), nullptr);
+
     if (window == nullptr)
     {
         cerr << "Failed to create GLFW window" << endl;
@@ -136,6 +137,9 @@ GLuint OpenGLWindow::CompileShader(string shaderCode, int shaderType)
         case GL_FRAGMENT_SHADER:
             shaderString = "FRAGMENT";
             break;
+        case GL_GEOMETRY_SHADER:
+            shaderString = "GEOMETRY";
+            break;
         };
         cerr << "ERROR::SHADER::" << shaderString << "::COMPILATION_FAILED\n" << infoLog << endl;
         return -1;
@@ -200,12 +204,20 @@ void OpenGLWindow::BindBuffers(Shape* shape, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glBufferData(GL_ARRAY_BUFFER, shape->GetVertexBufferSize(), shape->mVertices, GL_STATIC_DRAW);
 
+    // Vertex struct has 4 components
+    // Position (vec3)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+
+    // Color (vec3)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(1);
+
+    // Normal (vec3)
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
     glEnableVertexAttribArray(2);
+
+    // UV coordinates (vec2)
     glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 9));
     glEnableVertexAttribArray(3);
 }
@@ -244,7 +256,6 @@ void OpenGLWindow::BindTexture(GLuint* texture, char* path)
     SOIL_free_image_data(image);
 }
 
-
 void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
@@ -253,6 +264,7 @@ void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
     if (model.size() > 0)
         glBufferData(GL_ARRAY_BUFFER, model.size() * sizeof(glm::mat4), &model[0], GL_STATIC_DRAW);
 
+    // Attaching mat4 requires 4 vec4
     glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 16 * sizeof(GLfloat), (GLvoid*)0);
     glVertexAttribDivisor(4, 1);
     glEnableVertexAttribArray(4);
@@ -272,6 +284,7 @@ void OpenGLWindow::BindModelBuffers(vector<glm::mat4>& model, GLuint* VBO)
 
 void OpenGLWindow::BindParticleBuffers(vector<Particle>& particles, GLuint* VBO)
 {
+    // Bind only necessary particle info
     vector<ParticleInfo> info;
     for (unsigned int i = 0; i < particles.size(); i++)
         info.push_back(particles[i].mInfo);
@@ -279,12 +292,20 @@ void OpenGLWindow::BindParticleBuffers(vector<Particle>& particles, GLuint* VBO)
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
     glBufferData(GL_ARRAY_BUFFER, info.size() * sizeof(ParticleInfo), &info[0], GL_STATIC_DRAW);
 
+    // Particle struct has 4 components
+    // Position (vec3)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+
+    // Color (vec3)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 3));
     glEnableVertexAttribArray(1);
+
+    // UV coordinates (vec2)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 6));
     glEnableVertexAttribArray(2);
+
+    // Alpha (float)
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(sizeof(GLfloat) * 8));
     glEnableVertexAttribArray(3);
 }
@@ -293,39 +314,37 @@ void OpenGLWindow::SetUniformFactors(GLuint program)
 {
     glUseProgram(program);
 
+    // Get uniform locations
     GLuint constantFactorLoc = glGetUniformLocation(program, "constantFactor");
     GLuint linearFactorLoc = glGetUniformLocation(program, "linearFactor");
     GLuint quadraticFactorLoc = glGetUniformLocation(program, "quadraticFactor");
 
-    GLuint ambientLightLoc = glGetUniformLocation(program, "ambientLight");
-    GLuint farPlaneLoc = glGetUniformLocation(program, "farPlane");
-
+    // Set constant values
     float constantFactor = CONSTANT_ATTENUATION;
     float linearFactor = LINEAR_ATTENUATION;
     float quadraticFactor = QUADRATIC_ATTENUATION;
 
-    glm::vec3 ambient_light;
-    glm::vec3 sun_light;
-
-    ambient_light = glm::vec3(0.25f);
-
+    // Broadcast the uniform value to the shaders
     glUniform1f(constantFactorLoc, constantFactor);
     glUniform1f(linearFactorLoc, linearFactor);
     glUniform1f(quadraticFactorLoc, quadraticFactor);
-
-    glUniform3fv(ambientLightLoc, 1, &ambient_light[0]);
-    glUniform1f(farPlaneLoc, FAR_PLANE);
 }
 
 void OpenGLWindow::SetTexture(GLuint program, int index, char* name)
 {
+    // Get uniform location
     GLuint textureLoc = glGetUniformLocation(program, name);
+
+    // Broadcast the uniform value to the shaders
     glUniform1i(textureLoc, index);
 }
 
 void OpenGLWindow::RenderAABB(Shape* shape, GLuint program)
 {
+    // FOR DEBUGGING, RENDERS SELECTED OBJECTS AABB
     glUseProgram(program);
+
+    // Get uniform locations
     GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
     GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
@@ -333,6 +352,7 @@ void OpenGLWindow::RenderAABB(Shape* shape, GLuint program)
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
+    // Set values
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     model_matrix = glm::translate(model_matrix, mShapes[mSelectedShapeIndex]->mTranslate);
@@ -350,7 +370,7 @@ void OpenGLWindow::RenderAABB(Shape* shape, GLuint program)
     glm::mat4 mvp_matrix;
     mvp_matrix = projection_matrix * view_matrix * model_matrix;
 
-    //broadcast the uniform value to the shaders
+    // Broadcast the uniform value to the shaders
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
@@ -362,6 +382,8 @@ void OpenGLWindow::RenderAABB(Shape* shape, GLuint program)
 void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
 {
     glUseProgram(program);
+
+    // Get uniform locations
     GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
     GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
@@ -369,11 +391,11 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
     GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
-
     GLuint room1LightLoc = glGetUniformLocation(program, "room1LightPosition");
     GLuint room2LightLoc = glGetUniformLocation(program, "room2LightPosition");
     GLuint room3LightLoc = glGetUniformLocation(program, "room3LightPosition");
 
+    // Set values
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     model_matrix = glm::translate(model_matrix, shape->mTranslate);
@@ -391,7 +413,7 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glm::mat4 mvp_matrix;
     mvp_matrix = projection_matrix * view_matrix * model_matrix;
 
-    //broadcast the uniform value to the shaders
+    // Broadcast the uniform value to the shaders
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
@@ -399,20 +421,23 @@ void OpenGLWindow::RenderShape(Shape* shape, GLuint program)
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
     glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
-
     glUniform3fv(room1LightLoc, 1, &mRoom1Light[0]);
     glUniform3fv(room2LightLoc, 1, &mRoom2Light[0]);
     glUniform3fv(room3LightLoc, 1, &mRoom3Light[0]);
+    glUniform1f(glGetUniformLocation(program, "far_plane"), 50.0f);
 }
 
 void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
 {
     glUseProgram(program);
+
+    // Get uniform locations
     GLuint projectionLoc = glGetUniformLocation(program, "projection_matrix");
     GLuint viewMatrixLoc = glGetUniformLocation(program, "view_matrix");
     GLuint transformLoc = glGetUniformLocation(program, "model_matrix");
     GLuint lightPosLoc = glGetUniformLocation(program, "light_position");
 
+    // Set values
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     model_matrix = glm::translate(model_matrix, shape->mTranslate);
@@ -438,19 +463,23 @@ void OpenGLWindow::RenderShapeDepth(Shape* shape, GLuint program, int room)
     else
         lightPos = glm::vec3(22.0f, 5.0f, 28.0f);
 
-
+    // Broadcast the uniform value to the shaders
     glUniform3fv(lightPosLoc, 1, &lightPos[0]);
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
+    glUniform1f(glGetUniformLocation(program, "far_plane"), 50.0f);
 }
 
 void OpenGLWindow::RenderHUDShape(Shape* shape, GLuint program)
 {
     glUseProgram(program);
+
+    // Get uniform locations
     GLuint mvpLoc = glGetUniformLocation(program, "mvp_matrix");
     GLuint modelMatrixLoc = glGetUniformLocation(program, "modelMatrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
 
+    // Set values
     glm::mat4 model_matrix = glm::mat4(1.0f);
     model_matrix = glm::translate(model_matrix, glm::vec3(mWidth / 2.0f, mHeight / 2.0f, 0.0f));
 
@@ -460,7 +489,7 @@ void OpenGLWindow::RenderHUDShape(Shape* shape, GLuint program)
     glm::mat4 mvp_matrix;
     mvp_matrix = projection_matrix * model_matrix;
 
-    //broadcast the uniform value to the shaders
+    // Broadcast the uniform value to the shaders
     glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(mvp_matrix));
     glUniformMatrix4fv(modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(model_matrix));
     glUniform1f(alphaLoc, 1.0f);
@@ -470,16 +499,18 @@ void OpenGLWindow::RenderHUDShape(Shape* shape, GLuint program)
 void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
 {
     glUseProgram(program);
+
+    // Get uniform locations
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
     GLuint alphaLoc = glGetUniformLocation(program, "alpha");
     GLuint lightSwitchLoc = glGetUniformLocation(program, "lightSwitch");
     GLuint lightIntensityLoc = glGetUniformLocation(program, "lightIntensity");
     GLuint noLightLoc = glGetUniformLocation(program, "noLight");
-
     GLuint room1LightLoc = glGetUniformLocation(program, "room1LightPosition");
     GLuint room2LightLoc = glGetUniformLocation(program, "room2LightPosition");
     GLuint room3LightLoc = glGetUniformLocation(program, "room3LightPosition");
 
+    // Set values
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
 
@@ -489,23 +520,26 @@ void OpenGLWindow::RenderInstancedShape(Shape* shape, GLuint program)
     glm::mat4 vp_matrix;
     vp_matrix = projection_matrix * view_matrix;
 
-    //broadcast the uniform value to the shaders
+    // Broadcast the uniform value to the shaders
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
     glUniform1f(alphaLoc, shape->mAlpha);
     glUniform3fv(lightSwitchLoc, 1, &mLightSwitch[0]);
     glUniform3fv(lightIntensityLoc, 1, &mLightIntensity[0]);
     glUniform1f(noLightLoc, 0.0f);
-
     glUniform3fv(room1LightLoc, 1, &mRoom1Light[0]);
     glUniform3fv(room2LightLoc, 1, &mRoom2Light[0]);
     glUniform3fv(room3LightLoc, 1, &mRoom3Light[0]);
+    glUniform1f(glGetUniformLocation(program, "far_plane"), 50.0f);
 }
 
 void OpenGLWindow::RenderParticles(GLuint program)
 {
     glUseProgram(program);
+
+    // Get uniform location
     GLuint vpLoc = glGetUniformLocation(program, "vp_matrix");
 
+    // Set values
     glm::mat4 view_matrix;
     view_matrix = mCamera->GetViewMatrix();
 
@@ -515,7 +549,7 @@ void OpenGLWindow::RenderParticles(GLuint program)
     glm::mat4 vp_matrix;
     vp_matrix = projection_matrix * view_matrix;
 
-    //broadcast the uniform value to the shaders
+    // Broadcast the uniform value to the shaders
     glUniformMatrix4fv(vpLoc, 1, GL_FALSE, glm::value_ptr(vp_matrix));
 }
 
@@ -543,8 +577,6 @@ void OpenGLWindow::DrawInstancedShape(Shape* shape, int size, GLuint* VBO)
 void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (GLvoid*)0);
     glDrawArrays(mRenderMode, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -553,7 +585,6 @@ void OpenGLWindow::DrawSkybox(Shape* shape, GLuint* VBO)
 void OpenGLWindow::DrawLines(Shape* shape, GLuint* VBO)
 {
     glBindBuffer(GL_ARRAY_BUFFER, *VBO);
-    glLineWidth(10.0f);
     glDrawArrays(GL_LINES, 0, shape->mNumberOfVertices);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -623,12 +654,10 @@ int OpenGLWindow::GetCurrentRoom(glm::vec3 pos)
     return room;
 }
 
-glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, bool& valid, int ignoreIndex)
+glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 desiredEndPos, int ignoreIndex)
 {
-    //Determine the current room
-    ////cout << GetCurrentRoom(startPos) << endl;
     //Loop through all shapes in world
-    //If within BV of shape, return contact point
+    //If within BB of shape, return contact point
     //Else, return desiredEndPoint
     glm::vec3 returnPos = desiredEndPos;
 
@@ -650,7 +679,6 @@ glm::vec3 OpenGLWindow::GetNoCollisionPosition(glm::vec3 startPos, glm::vec3 des
 
     if (GetCurrentRoom(returnPos) == -1)
     {
-        valid = false;
         returnPos = startPos;
     }
 
@@ -662,15 +690,13 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
     bool valid = true;
 
     glm::vec3 centrePos = mShapes[objectIndex]->mCenter;
-
-    glm::vec3 xPos = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
-    glm::vec3 zPos = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
-
-    glm::vec3 minusXPos = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
-    glm::vec3 minusZPos = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
+    glm::vec3 topRight = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
+    glm::vec3 topLeft = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMax.z);
+    glm::vec3 bottomRight = glm::vec3(mShapes[objectIndex]->mBox.mMax.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
+    glm::vec3 bottomLeft = glm::vec3(mShapes[objectIndex]->mBox.mMin.x, 0.0f, mShapes[objectIndex]->mBox.mMin.z);
 
     //Check if outside
-    if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(xPos) == -1 || GetCurrentRoom(zPos) == -1 || GetCurrentRoom(minusXPos) == -1 || GetCurrentRoom(minusZPos) == -1)
+    if (GetCurrentRoom(centrePos) == -1 || GetCurrentRoom(topRight) == -1 || GetCurrentRoom(topLeft) == -1 || GetCurrentRoom(bottomRight) == -1 || GetCurrentRoom(bottomLeft) == -1)
     {
         return false;
     }
@@ -678,10 +704,10 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
     //Check all in same room
     int p1, p2, p3, p4, p5;
     p1 = GetCurrentRoom(centrePos);
-    p2 = GetCurrentRoom(xPos);
-    p3 = GetCurrentRoom(zPos);
-    p4 = GetCurrentRoom(minusXPos);
-    p5 = GetCurrentRoom(minusZPos);
+    p2 = GetCurrentRoom(topRight);
+    p3 = GetCurrentRoom(topLeft);
+    p4 = GetCurrentRoom(bottomRight);
+    p5 = GetCurrentRoom(bottomLeft);
     if (!((p1 == p2) && (p1 == p3) && (p1 == p4) && (p1 == p5)))
     {
         return false;
@@ -699,7 +725,7 @@ bool OpenGLWindow::GetIsValidObjectPosition(int objectIndex)
         if (i == 7 || i == 8 || i == 9)
             continue;
 
-        //If the distance is less than the radius, we are inside, so return the contact point
+        // Check if intersecting shape's BB
         if (mShapes[objectIndex]->mBox.Intersect(mShapes[i]->mBox))
         {
             return false;
@@ -718,8 +744,7 @@ void OpenGLWindow::SetLights()
 
 void OpenGLWindow::CursorCallback(GLFWwindow* window, double x, double y)
 {
-    if (mOrient)
-        mCamera->SetLookAt(glm::vec2(x, y));
+    // EMPTY
 }
 
 void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -727,14 +752,6 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
     //DEBUG
     if (key == GLFW_KEY_Q && action == GLFW_PRESS)
         mDebug = !mDebug;
-
-    if (key == GLFW_KEY_M && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        if (mode == GLFW_MOD_SHIFT)
-            mLightHeight -= 0.01f;
-        else
-            mLightHeight += 0.01f;
-    }
 
     if (key == GLFW_KEY_T && action == GLFW_PRESS)
     {
@@ -744,269 +761,42 @@ void OpenGLWindow::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
             mRenderMode = GL_TRIANGLES;
     }
 
-    if (key == GLFW_KEY_L && action == GLFW_PRESS)
-    {
-        if (mode == GLFW_MOD_SHIFT)
-        {
-            mToggleLight = !mToggleLight;
-            if (mToggleLight)
-                mLightSwitch = glm::vec3(1.0f);
-            else
-                mLightSwitch = glm::vec3(0.0f);
-        }
-        else
-        {
-            int room = GetCurrentRoom(mCamera->GetPosition());
-            if (room <= 3)
-            {
-                if (mLightSwitch[room - 1])
-                    mLightSwitch[room - 1] = 0.0f;
-                else
-                    mLightSwitch[room - 1] = 1.0f;
-            }
-        }
-    }
-
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-
-    if (key == GLFW_KEY_A && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
-
-        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
-    }
-
-    if (key == GLFW_KEY_D && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
-
-        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
-    }
-
-    if (key == GLFW_KEY_W && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
-
-        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
-    }
-
-    if (key == GLFW_KEY_S && (action == GLFW_PRESS || action == GLFW_REPEAT))
-    {
-        glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
-
-        ////cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
-    }
-
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && mSelectedShapeIndex != -1)
-    {
-        bool valid = true;
-
-        valid = GetIsValidObjectPosition(mSelectedShapeIndex);
-        
-        //If central position and all axes are good, it is valid
-        if (valid)
-        {
-            mShapes[mSelectedShapeIndex]->mAlpha = 1.0f;
-            mSelectedShapeIndex = -1;
-        }
-        else
-            cout << "INVALID POSITION" << endl;
-    }
-
-    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
-    {
-        glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
-        mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
-        mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
-        mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
-        mShapes[mSelectedShapeIndex]->mBox.Set();
-
-        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = false;
-        }
-        else
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = true;
-        }
-
-        if (mDebug)
-        {
-            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
-        }
-    }
-
-    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
-    {
-        glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
-        mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
-        mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
-        mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
-        mShapes[mSelectedShapeIndex]->mBox.Set();
-
-        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = false;
-        }
-        else
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = true;
-        }
-
-        if (mDebug)
-        {
-            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
-        }
-    }
-
-    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
-    {
-        if (mode == GLFW_MOD_SHIFT)
-        {
-            mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
-            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
-            mShapes[mSelectedShapeIndex]->mBox.Set();
-        }
-        else
-        {
-            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
-            mShapes[mSelectedShapeIndex]->mTranslate += -SHAPE_MOVEMENT_SPEED * translate;
-            mShapes[mSelectedShapeIndex]->mCenter += -SHAPE_MOVEMENT_SPEED * translate;
-            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
-            mShapes[mSelectedShapeIndex]->mBox.Set();
-        }
-
-        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = false;
-        }
-        else
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = true;
-        }
-
-        if (mDebug)
-        {
-            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
-        }
-    }
-
-    if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT) && mSelectedShapeIndex != -1)
-    {
-        if (mode == GLFW_MOD_SHIFT)
-        {
-            mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
-            mShapes[mSelectedShapeIndex]->mBox.mRotate = mShapes[mSelectedShapeIndex]->mRotate;
-            mShapes[mSelectedShapeIndex]->mBox.Set();
-        }
-        else
-        {
-            glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
-            mShapes[mSelectedShapeIndex]->mTranslate += SHAPE_MOVEMENT_SPEED * translate;
-            mShapes[mSelectedShapeIndex]->mCenter += SHAPE_MOVEMENT_SPEED * translate;
-            mShapes[mSelectedShapeIndex]->mBox.mTranslate = mShapes[mSelectedShapeIndex]->mTranslate;
-            mShapes[mSelectedShapeIndex]->mBox.Set();
-        }
-
-        if (!GetIsValidObjectPosition(mSelectedShapeIndex))
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = false;
-        }
-        else
-        {
-            mShapes[mSelectedShapeIndex]->mValidPos = true;
-        }
-
-        if (mDebug)
-        {
-            cout << "Max X: " << mShapes[mSelectedShapeIndex]->mBox.mMax.x << " Min X: " << mShapes[mSelectedShapeIndex]->mBox.mMin.x << endl;
-            cout << "Max Z: " << mShapes[mSelectedShapeIndex]->mBox.mMax.z << " Min Z: " << mShapes[mSelectedShapeIndex]->mBox.mMin.z << endl;
-        }
-    }
 }
 
 void OpenGLWindow::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    // SELECT object
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mSelectedShapeIndex == -1)
-    {
-        float t = 0.0f;
-        double x, y;
-        glfwGetCursorPos(window, &x, &y);
-
-        glm::mat4 projection_matrix = glm::perspective(45.0f, GetAspectRatio(), 0.01f, 1000.0f);
-        glm::mat4 view_matrix = mCamera->GetViewMatrix();
-        glm::vec3 camera_position = mCamera->GetPosition();
-
-        glm::vec4 device_ray = glm::vec4(((2.0f * x / mWidth) - 1.0f), (1.0f - (2.0f * y / mHeight)), -1.0f, 1.0f);
-        glm::vec4 eye_ray = glm::inverse(projection_matrix) * device_ray;
-        eye_ray = glm::vec4(eye_ray.x, eye_ray.y, -1.0f, 0.0f);
-        glm::vec3 world_ray = glm::normalize(glm::vec3(glm::inverse(view_matrix) * eye_ray));
-
-        for (unsigned int i = 0; i < mShapes.size(); i++)
-        {
-            float temp = mShapes[i]->IsSelected(world_ray, camera_position);
-
-            if (mSelectedShapeIndex < 0 && temp >= 0)
-            {
-                mSelectedShapeIndex = i;
-                t = temp;
-            }
-            else if (temp >= 0 && temp < t)
-            {
-                mSelectedShapeIndex = i;
-                t = temp;
-            }
-        }
-
-        if (mSelectedShapeIndex != -1)
-        {
-            mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
-        }
-    }
-
-    mOrient = button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS;
-    if (mOrient)
-    {
-        double x, y;
-        glfwGetCursorPos(window, &x, &y);
-        mCamera->SetMousePosition(glm::vec2(x, y));
-    }
+    // EMPTY
 }
 
 void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 {
     int count;
+    
+    // Get button and axes values
     const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
     const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+
+    // Right joystick for look around
     if ((axes[4] < 0.0f - BIAS) || (axes[4] > 0.0f + BIAS) || (axes[3] < 0.0f - BIAS) || (axes[3] > 0.0f + BIAS))
     {
         mCamera->JoystickSetLookAt(glm::vec2(axes[4], axes[3]));
     }
+
+    // Left joystick for camera movement
     if (axes[0] < 0.0f - BIAS)
     {
         glm::vec3 desiredPos = mCamera->GetPosition() - CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
     else if (axes[0] > 0.0f + BIAS)
     {
         glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f);
-        bool valid = false;
-        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
+        mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos));
     }
+
+    // Left joystick for camera movement
     if (axes[1] < 0.0f - BIAS)
     {
         glm::vec3 desiredPos = mCamera->GetPosition() + CAMERA_MOVEMENT_SPEED * mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f);
@@ -1020,7 +810,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         mCamera->SetPosition(GetNoCollisionPosition(mCamera->GetPosition(), desiredPos, valid));
     }
 
-
+    // Light intensity on triggers
     int room = GetCurrentRoom(mCamera->GetPosition());
     if (room == 1)
     {
@@ -1035,8 +825,10 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         mLightIntensity[2] = glm::clamp(mLightIntensity[2] - axes[2]/2.0f, -1.0f, 1.0f);
     }
 
+    // Object movement and rotation
     if (mSelectedShapeIndex != -1)
     {
+        // D-pad UP moving forward
         if (buttons[10] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -1055,6 +847,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // D-pad RIGHT moving right
         if (buttons[11] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -1073,6 +866,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // D-pad DOWN moving backward
         if (buttons[12] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetDirection() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -1091,6 +885,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // D-pad LEFT moving left
         if (buttons[13] == GLFW_PRESS)
         {
             glm::vec3 translate = glm::normalize(mCamera->GetRight() * glm::vec3(1.0f, 0.0f, 1.0f));
@@ -1109,6 +904,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // Left bumper for rotation
         if (buttons[4] == GLFW_PRESS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
@@ -1124,6 +920,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // Right bumper for rotation
         if (buttons[5] == GLFW_PRESS)
         {
             mShapes[mSelectedShapeIndex]->mRotate += -ROTATION_SPEED * glm::vec3(0.0f, 1.0f, 0.0f);
@@ -1139,6 +936,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
 
+        // Determine if new object position is valid
         if (!GetIsValidObjectPosition(mSelectedShapeIndex))
         {
             mShapes[mSelectedShapeIndex]->mValidPos = false;
@@ -1167,9 +965,13 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         }
     }
 
+    // Object selection/deselection using A
     if (buttons[0] == GLFW_PRESS && mPrevButtonAState != buttons[0])
     {
-        cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+        if (mDebug)
+            cout << mCamera->GetPosition().x << ", " << mCamera->GetPosition().z << endl;
+
+        // Dropping object, determine if valid position
         if (mSelectedShapeIndex != -1)
         {
             bool valid = GetIsValidObjectPosition(mSelectedShapeIndex);
@@ -1187,13 +989,10 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 
                 mSelectedShapeIndex = -1;
             }
-            else
-            {
-                //cout << "INVALID POSITION" << endl;
-            }
         }
         else
         {
+            // Ray tracing for object
             float t = 0.0f;
             float x = mWidth / 2.0f;
             float y = mHeight / 2.0f;
@@ -1209,6 +1008,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
 
             for (unsigned int i = 0; i < mShapes.size(); i++)
             {
+                // Determine if selected using Bounding Sphere
                 float temp = mShapes[i]->IsSelected(world_ray, camera_position);
 
                 if (mSelectedShapeIndex < 0 && temp >= 0)
@@ -1223,11 +1023,13 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
                 }
             }
 
+            // Fireplace = NO SELECTION
             if (mSelectedShapeIndex == 14)
                 mSelectedShapeIndex = -1;
 
             if (mSelectedShapeIndex != -1)
             {
+                // Set alpha value to half
                 mShapes[mSelectedShapeIndex]->mAlpha = 0.5f;
 
                 // For bed
@@ -1239,6 +1041,8 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             }
         }
     }
+
+    // Toggle lights in current room with Y
     if (buttons[3] == GLFW_PRESS && mPrevButtonYState != buttons[3])
     {
         int room = GetCurrentRoom(mCamera->GetPosition());
@@ -1251,6 +1055,7 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
         }
     }
 
+    // Toggle all lights with X
     if (buttons[2] == GLFW_PRESS && mPrevButtonXState != buttons[2])
     {
         mToggleLight = !mToggleLight;
@@ -1260,12 +1065,15 @@ void OpenGLWindow::JoystickCallback(GLFWwindow* window)
             mLightSwitch = glm::vec3(0.0f);
     }
 
+    // Close window with BACK
     if (buttons[6] == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
+    // Toggle menu with START
     if (buttons[7] == GLFW_PRESS && mPrevStartButtonState != buttons[7])
         mMenuToggle = !mMenuToggle;
 
+    // Set previous state of button presses
     mPrevStartButtonState = buttons[7];
     mPrevButtonXState = buttons[2];
     mPrevButtonYState = buttons[3];

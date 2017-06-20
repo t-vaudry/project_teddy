@@ -1,5 +1,4 @@
-#ifndef OBJLOADER_H
-#define OBJLOADER_H
+#pragma once
 #include <vector>
 #include <Vertex.h>
 #include <glew.h>
@@ -11,5 +10,3 @@ bool loadOBJ(
     vector<Vertex> & out_vertices,
     glm::vec3 color
     );
-
-#endif

@@ -4,7 +4,7 @@
 struct Vertex
 {
     Vertex() {}
-    Vertex(glm::vec3 position, glm::vec3 color, glm::vec3 normal, glm::vec2 uv = glm::vec2(0.0f)) //TODO: remove predec
+    Vertex(glm::vec3 position, glm::vec3 color, glm::vec3 normal, glm::vec2 uv = glm::vec2(0.0f))
     {
         mPosition = position;
         mColor = color;
